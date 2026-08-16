@@ -183,8 +183,7 @@ class PDI_API {
 	 *     @type string $slug        Upstream slug.
 	 *     @type string $author      Uploader display name, if available.
 	 *     @type string $alt         Alt text. Prefers a real alt-text field if the API exposes
-	 *                               one; otherwise falls back to the photo's excerpt specifically
-	 *                               (not the longer content/description). Empty if neither exists.
+	 *                               one; otherwise falls back to the same text as $description.
 	 *     @type string $thumbUrl    Best-guess thumbnail URL for grid display.
 	 *     @type array  $sizes       Map of size name => [ url, width, height ].
 	 * }
@@ -209,8 +208,6 @@ class PDI_API {
 		} elseif ( ! empty( $item['excerpt']['rendered'] ) ) {
 			$description = wp_strip_all_tags( $item['excerpt']['rendered'] );
 		}
-
-		$excerpt = isset( $item['excerpt']['rendered'] ) ? trim( wp_strip_all_tags( $item['excerpt']['rendered'] ) ) : '';
 
 		$sizes = array();
 		$alt   = '';
@@ -266,12 +263,11 @@ class PDI_API {
 		$alt = is_string( $alt ) ? trim( wp_strip_all_tags( $alt ) ) : '';
 
 		// The Photo Directory doesn't appear to expose a dedicated alt-text
-		// field at all. Fall back specifically to the excerpt (not the
-		// longer content/description) — deliberately not reusing
-		// $description here, since $description prefers content and can be
-		// considerably longer than what's appropriate for alt text.
-		if ( empty( $alt ) && ! empty( $excerpt ) ) {
-			$alt = $excerpt;
+		// field at all. Fall back to the same description text used for
+		// the attachment's Description field, since that's the only
+		// reliably-populated text this API offers.
+		if ( empty( $alt ) && ! empty( $description ) ) {
+			$alt = $description;
 		}
 
 		$author = '';

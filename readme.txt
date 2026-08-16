@@ -4,7 +4,7 @@ Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -40,26 +40,23 @@ Entry points:
   `source_url`, etc.). If wordpress.org changes the API's response shape,
   this is the one function that should need updating.
 * Title and alt text are sourced independently: alt text prefers a real
-  alt-text field if the API exposes one, otherwise falls back to the
-  photo's excerpt specifically (not the longer content/description — see
-  `PDI_API::normalize_item()` for the exact priority order). It's never
-  derived from the title. For title, known upstream placeholder strings
-  (currently "Photo Detail", "Untitled", "Untitled Photo" — see
-  `pdi_generic_title_placeholders` filter) are treated as no title at all,
-  and a fallback title is derived from the photo's slug instead (e.g.
-  `red-fox-in-snow` → "Red fox in snow"). If the slug itself isn't usable,
-  the title falls back to "Untitled photo".
-* The attachment's Caption field (post_excerpt) gets the photo's full
-  description text; its Description field (post_content) gets *only* the
-  photographer credit line (e.g. "Photo by Jane Smith, via the WordPress
-  Photo Directory."), or is left empty if no author name is available.
+  alt-text field if the API exposes one, otherwise falls back to the same
+  text used for the Description field (see `PDI_API::normalize_item()` for
+  the exact priority order). It's never derived from the title. For title,
+  known upstream placeholder strings (currently "Photo Detail", "Untitled",
+  "Untitled Photo" — see `pdi_generic_title_placeholders` filter) are
+  treated as no title at all, and a fallback title is derived from the
+  photo's slug instead (e.g. `red-fox-in-snow` → "Red fox in snow"). If
+  the slug itself isn't usable, the title falls back to "Untitled photo".
+* The attachment's Description field (post_content) and alt text both get
+  the photo's full description text; its Caption field (post_excerpt) gets
+  *only* the photographer credit line (e.g. "Photo by Jane Smith, via the
+  WordPress Photo Directory."), or is left empty if no author name is
+  available.
 * The search/browse picker UI doesn't display each photo's title — many
   photos on the Photo Directory only have a slug-derived fallback title
   (see above), which isn't meaningful to show while browsing. The title is
   still set on the imported attachment; it's just not shown in the grid.
-* The attachment caption (post_excerpt) is the photo's description with a
-  "Photo by {name}" credit line appended, when the API exposes an author
-  name.
 * Imports are deduplicated: each imported attachment gets a
   `_pdi_source_id` meta value, and re-importing the same photo returns the
   existing attachment instead of downloading it again.
@@ -71,6 +68,14 @@ Entry points:
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.2 =
+* Alt text now falls back to the same description text used for the
+  Description field, rather than a separate excerpt-only source that was
+  frequently empty even when the description itself had usable text.
+* Reverted the 1.3.1 Caption/Description swap: Description (post_content)
+  gets the photo's full description text again, and Caption (post_excerpt)
+  goes back to containing only the photographer credit line.
 
 = 1.3.1 =
 * Swapped the Caption/Description field mapping: Caption (post_excerpt)
