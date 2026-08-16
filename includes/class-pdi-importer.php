@@ -21,8 +21,23 @@ class PDI_Importer {
 	const META_SOURCE_AUTHOR = '_pdi_source_author';
 
 	/**
-	 * AJAX handler for `action=pdi_import`. Expects `photo_id` and
-	 * optional `size` POST parameters; returns the resulting attachment.
+	 * Sizes the UI is allowed to ask for, mapped to the upstream size key
+	 * each one downloads. Anything else falls back to the original.
+	 *
+	 * @return array Map of requested size => upstream size key.
+	 */
+	public static function allowed_sizes() {
+		return array(
+			'full'   => 'full',
+			'large'  => 'large',
+			'medium' => 'medium',
+		);
+	}
+
+	/**
+	 * AJAX handler for `action=pdi_import`. Expects `photo_id`, plus
+	 * optional `size`, `add_credit` and per-photo `title`, `alt` and
+	 * `caption` overrides; returns the resulting attachment.
 	 */
 	public static function ajax_import() {
 		check_ajax_referer( 'pdi_nonce', 'nonce' );
@@ -32,7 +47,19 @@ class PDI_Importer {
 		}
 
 		$photo_id = isset( $_POST['photo_id'] ) ? absint( $_POST['photo_id'] ) : 0;
-		$size     = isset( $_POST['size'] ) ? sanitize_key( $_POST['size'] ) : 'full';
+
+		$size    = isset( $_POST['size'] ) ? sanitize_key( wp_unslash( $_POST['size'] ) ) : 'full';
+		$allowed = self::allowed_sizes();
+		$size    = isset( $allowed[ $size ] ) ? $allowed[ $size ] : 'full';
+
+		$args = array(
+			// Absent means "yes": credit is on by default, and the UI only
+			// sends the flag when the editor turns it off.
+			'add_credit' => ! isset( $_POST['add_credit'] ) || '0' !== sanitize_key( wp_unslash( $_POST['add_credit'] ) ),
+			'title'      => isset( $_POST['title'] ) ? sanitize_text_field( wp_unslash( $_POST['title'] ) ) : null,
+			'alt'        => isset( $_POST['alt'] ) ? sanitize_text_field( wp_unslash( $_POST['alt'] ) ) : null,
+			'caption'    => isset( $_POST['caption'] ) ? sanitize_textarea_field( wp_unslash( $_POST['caption'] ) ) : null,
+		);
 
 		if ( ! $photo_id ) {
 			wp_send_json_error( array( 'message' => __( 'Missing photo ID.', 'pdi' ) ) );
@@ -42,7 +69,7 @@ class PDI_Importer {
 		// rather than downloading (and cluttering the library with) a duplicate.
 		$existing = self::find_existing_attachment( $photo_id );
 		if ( $existing ) {
-			wp_send_json_success( self::attachment_response( $existing ) );
+			wp_send_json_success( self::attachment_response( $existing, true ) );
 			return;
 		}
 
@@ -51,7 +78,7 @@ class PDI_Importer {
 			wp_send_json_error( array( 'message' => $photo->get_error_message() ) );
 		}
 
-		$attachment_id = self::import_photo( $photo, $size );
+		$attachment_id = self::import_photo( $photo, $size, $args );
 		if ( is_wp_error( $attachment_id ) ) {
 			wp_send_json_error( array( 'message' => $attachment_id->get_error_message() ) );
 		}
@@ -149,15 +176,34 @@ class PDI_Importer {
 	 *
 	 * @param array  $photo Normalized photo data from PDI_API::normalize_item().
 	 * @param string $size  Preferred size key; falls back to 'full', then the largest available.
+	 * @param array  $args  {
+	 *     Optional. Import options supplied by the editor.
+	 *
+	 *     @type bool        $add_credit Whether to write the photographer credit as the
+	 *                                   caption. Default true.
+	 *     @type string|null $title      Editor-supplied title, overriding the photo's own.
+	 *     @type string|null $alt        Editor-supplied alt text.
+	 *     @type string|null $caption    Editor-supplied caption, overriding the credit line.
+	 * }
 	 * @return int|WP_Error Attachment ID on success.
 	 */
-	public static function import_photo( $photo, $size = 'full' ) {
+	public static function import_photo( $photo, $size = 'full', $args = array() ) {
 		// Loaded here rather than at file scope: these are wp-admin includes and
 		// are only needed while actually importing, so front-end requests should
 		// not pay for parsing them.
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$args = wp_parse_args(
+			$args,
+			array(
+				'add_credit' => true,
+				'title'      => null,
+				'alt'        => null,
+				'caption'    => null,
+			)
+		);
 
 		if ( empty( $photo['sizes'] ) ) {
 			return new WP_Error( 'pdi_no_image', __( 'No downloadable image was found for this photo.', 'pdi' ) );
@@ -186,13 +232,23 @@ class PDI_Importer {
 			'tmp_name' => $tmp_file,
 		);
 
+		$title   = ( null !== $args['title'] && '' !== $args['title'] ) ? $args['title'] : $photo['title'];
+		$alt     = ( null !== $args['alt'] ) ? $args['alt'] : $photo['alt'];
+		$caption = $args['caption'];
+
+		// An editor-supplied caption wins outright. Otherwise the credit line
+		// is written only when crediting is switched on.
+		if ( null === $caption ) {
+			$caption = $args['add_credit'] ? self::build_credit_line( $photo ) : '';
+		}
+
 		$post_data = array(
-			'post_title'   => $photo['title'],
+			'post_title'   => $title,
 			'post_content' => $photo['description'],
-			'post_excerpt' => self::build_credit_line( $photo ),
+			'post_excerpt' => $caption,
 		);
 
-		$attachment_id = media_handle_sideload( $file_array, 0, $photo['title'], $post_data );
+		$attachment_id = media_handle_sideload( $file_array, 0, $title, $post_data );
 
 		if ( is_wp_error( $attachment_id ) ) {
 			if ( file_exists( $tmp_file ) ) {
@@ -201,8 +257,8 @@ class PDI_Importer {
 			return $attachment_id;
 		}
 
-		if ( ! empty( $photo['alt'] ) ) {
-			update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $photo['alt'] ) );
+		if ( '' !== $alt ) {
+			update_post_meta( $attachment_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
 		}
 
 		update_post_meta( $attachment_id, self::META_SOURCE_ID, $photo['id'] );
@@ -229,11 +285,19 @@ class PDI_Importer {
 			return '';
 		}
 
-		return sprintf(
+		$credit = sprintf(
 			/* translators: %s: photographer's display name */
 			__( 'Photo by %s, via the WordPress Photo Directory.', 'pdi' ),
 			$photo['author']
 		);
+
+		/**
+		 * Filters the photographer credit written into the attachment caption.
+		 *
+		 * @param string $credit Credit line.
+		 * @param array  $photo  Normalized photo data.
+		 */
+		return apply_filters( 'pdi_credit_line', $credit, $photo );
 	}
 
 	/**
@@ -275,7 +339,9 @@ class PDI_Importer {
 	/**
 	 * Builds the small JSON-friendly attachment payload sent back to the browser.
 	 *
-	 * @param int $attachment_id Local attachment ID.
+	 * @param int  $attachment_id Local attachment ID.
+	 * @param bool $already_in_library Whether this attachment was surfaced by the
+	 *                                 duplicate guard rather than freshly imported.
 	 * @return array {
 	 *     @type int    $id       Attachment ID.
 	 *     @type string $title    Attachment title.
@@ -284,14 +350,15 @@ class PDI_Importer {
 	 *     @type string $libraryUrl Media Library URL focused on this attachment.
 	 * }
 	 */
-	private static function attachment_response( $attachment_id ) {
+	private static function attachment_response( $attachment_id, $already_in_library = false ) {
 		$image = wp_get_attachment_image_src( $attachment_id, 'medium' );
 		return array(
-			'id'         => $attachment_id,
-			'title'      => get_the_title( $attachment_id ),
-			'thumbUrl'   => $image ? $image[0] : wp_get_attachment_url( $attachment_id ),
-			'editUrl'    => admin_url( 'post.php?post=' . $attachment_id . '&action=edit' ),
-			'libraryUrl' => admin_url( 'upload.php?item=' . $attachment_id ),
+			'id'               => $attachment_id,
+			'title'            => get_the_title( $attachment_id ),
+			'thumbUrl'         => $image ? $image[0] : wp_get_attachment_url( $attachment_id ),
+			'editUrl'          => admin_url( 'post.php?post=' . $attachment_id . '&action=edit' ),
+			'libraryUrl'       => admin_url( 'upload.php?item=' . $attachment_id ),
+			'alreadyInLibrary' => (bool) $already_in_library,
 		);
 	}
 }
