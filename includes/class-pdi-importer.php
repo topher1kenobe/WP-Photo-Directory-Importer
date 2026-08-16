@@ -9,10 +9,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once ABSPATH . 'wp-admin/includes/media.php';
-require_once ABSPATH . 'wp-admin/includes/file.php';
-require_once ABSPATH . 'wp-admin/includes/image.php';
-
 /**
  * Downloads a chosen photo and sideloads it into the local Media Library as
  * a real attachment (so it behaves exactly like any uploaded image —
@@ -100,6 +96,13 @@ class PDI_Importer {
 	 * @return int|WP_Error Attachment ID on success.
 	 */
 	public static function import_photo( $photo, $size = 'full' ) {
+		// Loaded here rather than at file scope: these are wp-admin includes and
+		// are only needed while actually importing, so front-end requests should
+		// not pay for parsing them.
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
 		if ( empty( $photo['sizes'] ) ) {
 			return new WP_Error( 'pdi_no_image', __( 'No downloadable image was found for this photo.', 'pdi' ) );
 		}
