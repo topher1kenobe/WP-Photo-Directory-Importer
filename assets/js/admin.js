@@ -155,12 +155,11 @@
 	PDIView.prototype.renderCard = function ( photo ) {
 		var self = this;
 		var img = el( 'img', { src: photo.thumbUrl, alt: photo.alt || photo.title, loading: 'lazy' } );
-		var title = el( 'div', { class: 'pdi-card-title' }, [ document.createTextNode( photo.title ) ] );
 		var importBtn = el( 'button', { type: 'button', class: 'button button-small pdi-import-btn' }, [
 			document.createTextNode( S.strings.import ),
 		] );
 		var actions = el( 'div', { class: 'pdi-card-actions' }, [ importBtn ] );
-		var card = el( 'div', { class: 'pdi-card' }, [ img, title, actions ] );
+		var card = el( 'div', { class: 'pdi-card' }, [ img, actions ] );
 
 		importBtn.addEventListener( 'click', function () {
 			self.importPhoto( photo, card, importBtn );

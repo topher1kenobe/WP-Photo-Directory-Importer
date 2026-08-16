@@ -183,9 +183,7 @@ class PDI_API {
 	 *     @type string $slug        Upstream slug.
 	 *     @type string $author      Uploader display name, if available.
 	 *     @type string $alt         Alt text. Prefers a real alt-text field if the API exposes
-	 *                               one; otherwise reuses the photo's description text, since
-	 *                               that appears to be the closest thing to alt text this API
-	 *                               offers. Empty only if the photo has no description either.
+	 *                               one; otherwise falls back to the same text as $description.
 	 *     @type string $thumbUrl    Best-guess thumbnail URL for grid display.
 	 *     @type array  $sizes       Map of size name => [ url, width, height ].
 	 * }
@@ -265,10 +263,9 @@ class PDI_API {
 		$alt = is_string( $alt ) ? trim( wp_strip_all_tags( $alt ) ) : '';
 
 		// The Photo Directory doesn't appear to expose a dedicated alt-text
-		// field at all — the descriptive text uploaders enter comes through
-		// as content/excerpt (already captured above as $description), and
-		// that's the closest thing to real alt text this API offers. Reuse
-		// it rather than leaving alt text empty.
+		// field at all. Fall back to the same description text used for
+		// the attachment's Description field, since that's the only
+		// reliably-populated text this API offers.
 		if ( empty( $alt ) && ! empty( $description ) ) {
 			$alt = $description;
 		}
