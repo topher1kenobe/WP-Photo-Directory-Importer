@@ -84,7 +84,10 @@
 	pointer-events: none;
 }
 
-.pdi-search__input {
+/* Over-qualified on purpose: core's `input[type="search"]` rule in forms.css
+   carries an attribute selector, so a single class loses to it and the text
+   would sit under the magnifier. */
+.pdi-browser .pdi-search__field .pdi-search__input {
 	width: 100%;
 	height: 36px;
 	margin: 0;
