@@ -57,6 +57,25 @@ class PDI_Plugin {
 	public function register_assets() {
 		wp_register_style( 'pdi-admin', PDI_PLUGIN_URL . 'assets/css/admin.css', array(), PDI_VERSION );
 
+		wp_register_style(
+			'pdi-photo-browser',
+			PDI_PLUGIN_URL . 'assets/css/photo-browser.css',
+			array( 'dashicons' ),
+			PDI_VERSION
+		);
+
+		// Built against wp-element rather than a bundler: the plugin ships no
+		// build step, and WordPress already serves React under this handle.
+		wp_register_script(
+			'pdi-photo-browser',
+			PDI_PLUGIN_URL . 'assets/js/photo-browser.js',
+			array( 'wp-element' ),
+			PDI_VERSION,
+			true
+		);
+
+		wp_localize_script( 'pdi-photo-browser', 'PDI_Browser', $this->browser_settings() );
+
 		wp_register_script( 'pdi-admin', PDI_PLUGIN_URL . 'assets/js/admin.js', array(), PDI_VERSION, true );
 
 		wp_register_script(
@@ -92,6 +111,83 @@ class PDI_Plugin {
 	}
 
 	/**
+	 * Data handed to the browse app. Strings are localized here rather than
+	 * through wp-i18n so the plugin keeps working without shipping compiled
+	 * translation files, matching how pdi-admin already does it.
+	 *
+	 * @return array Settings consumed by assets/js/photo-browser.js.
+	 */
+	private function browser_settings() {
+		/**
+		 * Filters the URL of the "Import settings" link in the page header.
+		 * Empty by default, which hides the link, since the plugin has no
+		 * settings panel yet.
+		 *
+		 * @param string $url Settings panel URL.
+		 */
+		$settings_url = apply_filters( 'pdi_settings_url', '' );
+
+		return array(
+			'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
+			'nonce'       => wp_create_nonce( 'pdi_nonce' ),
+			'libraryUrl'  => admin_url( 'upload.php' ),
+			'settingsUrl' => esc_url_raw( $settings_url ),
+			'perPage'     => 20,
+			'strings'     => array(
+				'title'               => __( 'Photo Directory', 'pdi' ),
+				'description'         => __( 'Free, CC0-licensed photos contributed to WordPress.org. Import any photo straight into your Media Library. No attribution required, credit optional.', 'pdi' ),
+				'importSettings'      => __( 'Import settings', 'pdi' ),
+				'searchLabel'         => __( 'Search photos', 'pdi' ),
+				'searchPlaceholder'   => __( 'Search photos by subject, place or tag', 'pdi' ),
+				'search'              => __( 'Search', 'pdi' ),
+				'allCategories'       => __( 'All categories', 'pdi' ),
+				'anyOrientation'      => __( 'Any orientation', 'pdi' ),
+				'colorLabel'          => __( 'Color', 'pdi' ),
+				'anyColor'            => __( 'Any color', 'pdi' ),
+				/* translators: %s: colour name, e.g. "Green" */
+				'colorSwatch'         => __( 'Filter by %s', 'pdi' ),
+				'sortLabel'           => __( 'Sort results', 'pdi' ),
+				'sortRelevance'       => __( 'Most relevant', 'pdi' ),
+				'sortNewest'          => __( 'Newest', 'pdi' ),
+				/* translators: %s: formatted number of photos */
+				'photoCount'          => __( '%s photos', 'pdi' ),
+				/* translators: 1: formatted number of photos, 2: search term */
+				'photoCountFor'       => __( '%1$s photos for “%2$s”', 'pdi' ),
+				'filtersLabel'        => __( 'Filters', 'pdi' ),
+				/* translators: %s: name of the filter being removed */
+				'removeFilter'        => __( 'Remove filter: %s', 'pdi' ),
+				'clearAll'            => __( 'Clear all', 'pdi' ),
+
+				'recentlyAdded'       => __( 'Recently added', 'pdi' ),
+				/* translators: %s: search term */
+				'resultsFor'          => __( 'Results for “%s”', 'pdi' ),
+				'inLibrary'           => __( 'In library', 'pdi' ),
+				'import'              => __( 'Import', 'pdi' ),
+				'importing'           => __( 'Importing…', 'pdi' ),
+				'viewInLibrary'       => __( 'View in library', 'pdi' ),
+				'loadMore'            => __( 'Load more photos', 'pdi' ),
+				'loading'             => __( 'Loading…', 'pdi' ),
+				/* translators: 1: number of photos shown so far, 2: total number available */
+				'showingCount'        => __( 'Showing %1$s of %2$s', 'pdi' ),
+
+				/* translators: %s: number of photos imported */
+				'importedCount'       => __( '%s photos imported.', 'pdi' ),
+				'importFailed'        => __( 'That photo could not be imported.', 'pdi' ),
+				'alreadyImported'     => __( 'That photo is already in your Media Library.', 'pdi' ),
+				'alreadyImportedBody' => __( 'It was imported earlier, so nothing was downloaded again.', 'pdi' ),
+
+				/* translators: %s: search term */
+				'emptyTitle'          => __( 'No photos match “%s”', 'pdi' ),
+				'emptyTitleFiltered'  => __( 'No photos match these filters', 'pdi' ),
+				'emptyBody'           => __( 'Narrow searches often come back empty. Try a broader term, or drop a filter.', 'pdi' ),
+				'errorTitle'          => __( 'Couldn’t reach WordPress.org.', 'pdi' ),
+				'tryAgain'            => __( 'Try again', 'pdi' ),
+				'error'               => __( 'The Photo Directory API didn’t respond. Your Media Library is unaffected.', 'pdi' ),
+			),
+		);
+	}
+
+	/**
 	 * Adds the "Media > Photo Directory" admin page.
 	 */
 	public function register_admin_page() {
@@ -105,19 +201,18 @@ class PDI_Plugin {
 	}
 
 	/**
-	 * Renders the "Media > Photo Directory" admin page markup. The actual
-	 * search/grid UI is rendered into #pdi-app by assets/js/admin.js.
+	 * Renders the "Media > Photo Directory" admin page. Everything inside
+	 * .wrap is rendered by assets/js/photo-browser.js, including the page
+	 * heading, so that the title, description and "Import settings" link
+	 * share one layout container. No h1 is printed here on purpose: a second
+	 * one would leave the screen with two competing top-level headings.
 	 */
 	public function render_admin_page() {
-		wp_enqueue_style( 'pdi-admin' );
-		wp_enqueue_script( 'pdi-admin' );
+		wp_enqueue_style( 'pdi-photo-browser' );
+		wp_enqueue_script( 'pdi-photo-browser' );
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'WordPress Photo Directory', 'pdi' ); ?></h1>
-			<p>
-				<?php esc_html_e( 'Search the free, CC0-licensed WordPress Photo Directory and import photos directly into your Media Library.', 'pdi' ); ?>
-			</p>
-			<div id="pdi-app" class="pdi-app" data-context="page"></div>
+		<div class="wrap pdi-wrap">
+			<div id="pdi-browser" class="pdi-browser"></div>
 		</div>
 		<?php
 	}
