@@ -192,7 +192,7 @@ class PDI_API {
 		$id    = isset( $item['id'] ) ? intval( $item['id'] ) : 0;
 		$title = isset( $item['title']['rendered'] ) ? trim( wp_strip_all_tags( $item['title']['rendered'] ) ) : '';
 		$link  = isset( $item['link'] ) ? esc_url_raw( $item['link'] ) : '';
-		$slug  = isset( $item['slug'] ) ? $item['slug'] : '';
+		$slug  = isset( $item['slug'] ) && is_string( $item['slug'] ) ? sanitize_title( $item['slug'] ) : '';
 
 		// The upstream Photo Directory substitutes a generic placeholder
 		// title (e.g. "Photo Detail") for photos the uploader never titled.
@@ -228,11 +228,14 @@ class PDI_API {
 				$alt = $media['alt_text'];
 			}
 			if ( empty( $sizes ) && ! empty( $media['source_url'] ) ) {
-				$sizes['full'] = array(
-					'url'    => $media['source_url'],
-					'width'  => isset( $media['media_details']['width'] ) ? intval( $media['media_details']['width'] ) : 0,
-					'height' => isset( $media['media_details']['height'] ) ? intval( $media['media_details']['height'] ) : 0,
-				);
+				$source_url = esc_url_raw( $media['source_url'] );
+				if ( $source_url ) {
+					$sizes['full'] = array(
+						'url'    => $source_url,
+						'width'  => isset( $media['media_details']['width'] ) ? intval( $media['media_details']['width'] ) : 0,
+						'height' => isset( $media['media_details']['height'] ) ? intval( $media['media_details']['height'] ) : 0,
+					);
+				}
 			}
 		}
 
@@ -243,11 +246,14 @@ class PDI_API {
 
 		// 4) Last resort: a single source_url on the item itself.
 		if ( empty( $sizes ) && ! empty( $item['source_url'] ) ) {
-			$sizes['full'] = array(
-				'url'    => $item['source_url'],
-				'width'  => 0,
-				'height' => 0,
-			);
+			$source_url = esc_url_raw( $item['source_url'] );
+			if ( $source_url ) {
+				$sizes['full'] = array(
+					'url'    => $source_url,
+					'width'  => 0,
+					'height' => 0,
+				);
+			}
 		}
 
 		// Alt text fallbacks beyond the embedded featured-media object above.
@@ -274,6 +280,7 @@ class PDI_API {
 		if ( ! empty( $item['_embedded']['author'][0]['name'] ) ) {
 			$author = $item['_embedded']['author'][0]['name'];
 		}
+		$author = is_string( $author ) ? trim( wp_strip_all_tags( $author ) ) : '';
 
 		$thumb = '';
 		foreach ( array( 'medium', 'thumbnail', 'medium_large' ) as $want ) {
@@ -356,6 +363,7 @@ class PDI_API {
 			} elseif ( ! empty( $data['url'] ) ) {
 				$url = $data['url'];
 			}
+			$url = is_string( $url ) ? esc_url_raw( $url ) : '';
 			if ( ! $url ) {
 				continue;
 			}
