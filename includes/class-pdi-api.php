@@ -24,12 +24,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class PDI_API {
 
-	const REMOTE_BASE = 'https://wordpress.org/photos/wp-json/wp/v2/photos';
-	const CACHE_TTL   = 300; // 5 minutes.
+	const REMOTE_BASE     = 'https://wordpress.org/photos/wp-json/wp/v2/photos';
+	const TAXONOMY_BASE   = 'https://wordpress.org/photos/wp-json/wp/v2/';
+	const CACHE_TTL       = 300; // 5 minutes.
+	const TERMS_CACHE_TTL = DAY_IN_SECONDS;
+
+	/**
+	 * Taxonomies the browse UI can filter on, in the order they're shown.
+	 *
+	 * @var string[]
+	 */
+	const FILTER_TAXONOMIES = array( 'photo-categories', 'photo-orientations', 'photo-colors' );
 
 	/**
 	 * AJAX handler for `action=pdi_search`. Expects `search` and `page`
-	 * POST parameters; returns a normalized list of photos as JSON.
+	 * POST parameters, plus optional `category`, `orientation`, `color`
+	 * (term IDs) and `sort`; returns a normalized list of photos as JSON.
 	 */
 	public static function ajax_search() {
 		check_ajax_referer( 'pdi_nonce', 'nonce' );
@@ -41,13 +51,41 @@ class PDI_API {
 		$search = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
 		$page   = isset( $_POST['page'] ) ? max( 1, absint( $_POST['page'] ) ) : 1;
 
-		$result = self::search( $search, $page, 20 );
+		$filters = array(
+			'category'    => isset( $_POST['category'] ) ? absint( $_POST['category'] ) : 0,
+			'orientation' => isset( $_POST['orientation'] ) ? absint( $_POST['orientation'] ) : 0,
+			'color'       => isset( $_POST['color'] ) ? absint( $_POST['color'] ) : 0,
+			'sort'        => isset( $_POST['sort'] ) ? sanitize_key( wp_unslash( $_POST['sort'] ) ) : '',
+		);
+
+		$result = self::search( $search, $page, 20, $filters );
 
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( array( 'message' => $result->get_error_message() ), 500 );
 		}
 
+		// Resolved outside search() on purpose: the search payload is cached
+		// for five minutes, but which photos are already in the library
+		// changes the moment one is imported.
+		$result['importedMap'] = PDI_Importer::find_existing_attachments( wp_list_pluck( $result['photos'], 'id' ) );
+		$result['libraryUrl']  = admin_url( 'upload.php' );
+
 		wp_send_json_success( $result );
+	}
+
+	/**
+	 * AJAX handler for `action=pdi_terms`. Returns the filterable taxonomy
+	 * terms so the UI can populate its dropdowns from the directory itself
+	 * rather than from a hardcoded list that silently rots.
+	 */
+	public static function ajax_terms() {
+		check_ajax_referer( 'pdi_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this.', 'pdi' ) ), 403 );
+		}
+
+		wp_send_json_success( self::get_filter_terms() );
 	}
 
 	/**
@@ -57,6 +95,8 @@ class PDI_API {
 	 * @param string $search   Search term. Empty string returns latest photos.
 	 * @param int    $page     1-indexed page number.
 	 * @param int    $per_page Results per page.
+	 * @param array  $filters  Optional. Term IDs for `category`, `orientation`
+	 *                         and `color`, plus a `sort` key. See normalize_filters().
 	 * @return array|WP_Error {
 	 *     @type array $photos     Normalized photo objects, see normalize_item().
 	 *     @type int   $page       Current page.
@@ -64,8 +104,10 @@ class PDI_API {
 	 *     @type int   $total      Total item count upstream.
 	 * }
 	 */
-	public static function search( $search = '', $page = 1, $per_page = 20 ) {
-		$cache_key = 'pdi_search_' . md5( $search . '|' . $page . '|' . $per_page );
+	public static function search( $search = '', $page = 1, $per_page = 20, $filters = array() ) {
+		$filters = self::normalize_filters( $filters, $search );
+
+		$cache_key = 'pdi_search_' . md5( wp_json_encode( array( $search, $page, $per_page, $filters ) ) );
 		$cached    = get_transient( $cache_key );
 		if ( false !== $cached ) {
 			return $cached;
@@ -75,9 +117,20 @@ class PDI_API {
 			'page'     => $page,
 			'per_page' => $per_page,
 			'_embed'   => 1,
+			'orderby'  => $filters['sort'],
+			'order'    => 'desc',
 		);
 		if ( '' !== $search ) {
 			$args['search'] = $search;
+		}
+		if ( $filters['category'] ) {
+			$args['photo-categories'] = $filters['category'];
+		}
+		if ( $filters['orientation'] ) {
+			$args['photo-orientations'] = $filters['orientation'];
+		}
+		if ( $filters['color'] ) {
+			$args['photo-colors'] = $filters['color'];
 		}
 
 		$url = add_query_arg( $args, self::REMOTE_BASE );
@@ -125,6 +178,167 @@ class PDI_API {
 		set_transient( $cache_key, $result, self::CACHE_TTL );
 
 		return $result;
+	}
+
+	/**
+	 * Fills in defaults and clamps the browse filters to values the upstream
+	 * API will actually accept.
+	 *
+	 * The Photo Directory exposes no popularity signal of any kind (no view,
+	 * download or favourite count), so the only orderings available are
+	 * `relevance` and `date`. Relevance additionally requires a search term:
+	 * asking for it while browsing returns HTTP 400, so it degrades to date
+	 * whenever the query is empty.
+	 *
+	 * @param array  $filters Raw filters.
+	 * @param string $search  Search term the filters will be applied to.
+	 * @return array {
+	 *     @type int    $category    photo-categories term ID, 0 for any.
+	 *     @type int    $orientation photo-orientations term ID, 0 for any.
+	 *     @type int    $color       photo-colors term ID, 0 for any.
+	 *     @type string $sort        Either 'relevance' or 'date'.
+	 * }
+	 */
+	private static function normalize_filters( $filters, $search ) {
+		$filters = wp_parse_args(
+			$filters,
+			array(
+				'category'    => 0,
+				'orientation' => 0,
+				'color'       => 0,
+				'sort'        => '',
+			)
+		);
+
+		$sort = 'relevance' === $filters['sort'] ? 'relevance' : 'date';
+		if ( 'relevance' === $sort && '' === $search ) {
+			$sort = 'date';
+		}
+
+		return array(
+			'category'    => absint( $filters['category'] ),
+			'orientation' => absint( $filters['orientation'] ),
+			'color'       => absint( $filters['color'] ),
+			'sort'        => $sort,
+		);
+	}
+
+	/**
+	 * Fetches the filterable taxonomy terms from the directory, cached for a
+	 * day since they change very rarely.
+	 *
+	 * Returns an empty term list (rather than a WP_Error) for any taxonomy
+	 * that fails to load, so one unreachable taxonomy degrades a single
+	 * dropdown instead of breaking the whole screen.
+	 *
+	 * @return array Map of taxonomy name => list of [ id, slug, name, count, hex ].
+	 */
+	public static function get_filter_terms() {
+		$cached = get_transient( 'pdi_filter_terms' );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
+		$out = array();
+		foreach ( self::FILTER_TAXONOMIES as $taxonomy ) {
+			$out[ $taxonomy ] = self::fetch_terms( $taxonomy );
+		}
+
+		set_transient( 'pdi_filter_terms', $out, self::TERMS_CACHE_TTL );
+
+		return $out;
+	}
+
+	/**
+	 * Fetches every term of one taxonomy, ordered by how many photos use it.
+	 *
+	 * @param string $taxonomy Taxonomy REST base, e.g. 'photo-colors'.
+	 * @return array List of [ id, slug, name, count, hex ].
+	 */
+	private static function fetch_terms( $taxonomy ) {
+		$url = add_query_arg(
+			array(
+				'per_page' => 100,
+				'orderby'  => 'count',
+				'order'    => 'desc',
+				'_fields'  => 'id,slug,name,count',
+			),
+			self::TAXONOMY_BASE . $taxonomy
+		);
+
+		$response = wp_remote_get(
+			$url,
+			array(
+				'timeout' => 15,
+				'headers' => array( 'Accept' => 'application/json' ),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return array();
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		if ( $code < 200 || $code >= 300 ) {
+			return array();
+		}
+
+		$terms = json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( ! is_array( $terms ) ) {
+			return array();
+		}
+
+		$swatches = self::color_swatches();
+		$out      = array();
+
+		foreach ( $terms as $term ) {
+			if ( empty( $term['id'] ) || empty( $term['slug'] ) ) {
+				continue;
+			}
+			$slug  = sanitize_title( $term['slug'] );
+			$out[] = array(
+				'id'    => intval( $term['id'] ),
+				'slug'  => $slug,
+				'name'  => isset( $term['name'] ) ? trim( wp_strip_all_tags( html_entity_decode( $term['name'], ENT_QUOTES, 'UTF-8' ) ) ) : $slug,
+				'count' => isset( $term['count'] ) ? intval( $term['count'] ) : 0,
+				'hex'   => isset( $swatches[ $slug ] ) ? $swatches[ $slug ] : '',
+			);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Swatch colours used to render the photo-colors filter. Keyed by the
+	 * upstream term slug; the six the design specifies come straight from
+	 * the wp-admin palette, the rest are chosen to sit alongside them.
+	 *
+	 * @return array Map of term slug => hex colour.
+	 */
+	private static function color_swatches() {
+		/**
+		 * Filters the hex colour used for each photo-colors swatch.
+		 *
+		 * @param array $swatches Map of term slug => hex colour.
+		 */
+		return apply_filters(
+			'pdi_color_swatches',
+			array(
+				'black'  => '#1d2327',
+				'blue'   => '#3858e9',
+				'green'  => '#2c8f4a',
+				'yellow' => '#d9a51b',
+				'red'    => '#d63638',
+				'white'  => '#f6f7f7',
+				'gray'   => '#8c8f94',
+				'silver' => '#c3c4c7',
+				'brown'  => '#7a5c3e',
+				'orange' => '#e07c24',
+				'pink'   => '#e0669b',
+				'purple' => '#7c4bab',
+				'violet' => '#9a6fd4',
+			)
+		);
 	}
 
 	/**
@@ -186,6 +400,13 @@ class PDI_API {
 	 *                               one; otherwise falls back to the same text as $description.
 	 *     @type string $thumbUrl    Best-guess thumbnail URL for grid display.
 	 *     @type array  $sizes       Map of size name => [ url, width, height ].
+	 *     @type int    $width       Pixel width of the full-size original.
+	 *     @type int    $height      Pixel height of the full-size original.
+	 *     @type string $mime        MIME type of the original, e.g. 'image/jpeg'.
+	 *     @type int    $filesize    Size of the original in bytes, 0 when unknown.
+	 *     @type array  $terms       Map of taxonomy name => list of term IDs.
+	 *     @type string $credit      Photographer credit line the importer would write as
+	 *                               the caption, so the UI can prefill it.
 	 * }
 	 */
 	public static function normalize_item( $item ) {
@@ -209,8 +430,10 @@ class PDI_API {
 			$description = wp_strip_all_tags( $item['excerpt']['rendered'] );
 		}
 
-		$sizes = array();
-		$alt   = '';
+		$sizes    = array();
+		$alt      = '';
+		$mime     = '';
+		$filesize = 0;
 
 		// 1) Sizes living directly on the item (mirrors the core /wp/v2/media shape).
 		if ( ! empty( $item['media_details']['sizes'] ) && is_array( $item['media_details']['sizes'] ) ) {
@@ -218,11 +441,17 @@ class PDI_API {
 		}
 
 		// 2) Sizes on the embedded featured media object (?_embed).
-		if ( empty( $sizes ) && ! empty( $item['_embedded']['wp:featuredmedia'][0] ) ) {
+		if ( ! empty( $item['_embedded']['wp:featuredmedia'][0] ) ) {
 			$media = $item['_embedded']['wp:featuredmedia'][0];
 
-			if ( ! empty( $media['media_details']['sizes'] ) ) {
+			if ( empty( $sizes ) && ! empty( $media['media_details']['sizes'] ) ) {
 				$sizes = self::extract_sizes( $media['media_details']['sizes'] );
+			}
+			if ( ! empty( $media['mime_type'] ) && is_string( $media['mime_type'] ) ) {
+				$mime = sanitize_mime_type( $media['mime_type'] );
+			}
+			if ( ! empty( $media['media_details']['filesize'] ) ) {
+				$filesize = intval( $media['media_details']['filesize'] );
 			}
 			if ( empty( $alt ) && ! empty( $media['alt_text'] ) ) {
 				$alt = $media['alt_text'];
@@ -294,11 +523,21 @@ class PDI_API {
 			$thumb = $first['url'];
 		}
 
-		if ( '' === $title && $slug ) {
+		// Almost every photo in the directory arrives with the placeholder
+		// title stripped above and an opaque slug like "6836a813f7", so the
+		// uploader's own description is the only human-readable text left to
+		// build a title from. The slug is only humanized when it actually
+		// reads like words.
+		if ( '' === $title && $description ) {
+			$title = self::title_from_description( $description );
+		}
+		if ( '' === $title && $slug && ! self::is_opaque_slug( $slug ) ) {
 			$title = self::humanize_slug( $slug );
 		}
 
-		return array(
+		$full = ! empty( $sizes['full'] ) ? $sizes['full'] : self::largest_size( $sizes );
+
+		$photo = array(
 			'id'          => $id,
 			'title'       => $title ? $title : __( 'Untitled photo', 'pdi' ),
 			'description' => $description,
@@ -308,7 +547,103 @@ class PDI_API {
 			'alt'         => $alt,
 			'thumbUrl'    => $thumb,
 			'sizes'       => $sizes,
+			'width'       => $full ? intval( $full['width'] ) : 0,
+			'height'      => $full ? intval( $full['height'] ) : 0,
+			'mime'        => $mime,
+			'filesize'    => $filesize,
+			'terms'       => self::extract_terms( $item ),
 		);
+
+		$photo['credit'] = PDI_Importer::build_credit_line( $photo );
+
+		return $photo;
+	}
+
+	/**
+	 * Picks the size with the largest pixel area from a photo's size map.
+	 *
+	 * @param array $sizes Map of size name => [ url, width, height ].
+	 * @return array|null The largest size entry, or null when the map is empty.
+	 */
+	private static function largest_size( $sizes ) {
+		$best = null;
+		$area = -1;
+		foreach ( $sizes as $size ) {
+			$size_area = intval( $size['width'] ) * intval( $size['height'] );
+			if ( $size_area > $area ) {
+				$area = $size_area;
+				$best = $size;
+			}
+		}
+		return $best;
+	}
+
+	/**
+	 * Pulls the taxonomy term IDs off a raw item so the UI can tell which
+	 * category, colours and orientation a photo belongs to.
+	 *
+	 * @param array $item Raw item from the upstream `/wp/v2/photos` response.
+	 * @return array Map of taxonomy name => list of term IDs.
+	 */
+	private static function extract_terms( $item ) {
+		$out = array();
+		foreach ( self::FILTER_TAXONOMIES as $taxonomy ) {
+			$ids = array();
+			if ( ! empty( $item[ $taxonomy ] ) && is_array( $item[ $taxonomy ] ) ) {
+				$ids = array_values( array_filter( array_map( 'intval', $item[ $taxonomy ] ) ) );
+			}
+			$out[ $taxonomy ] = $ids;
+		}
+		return $out;
+	}
+
+	/**
+	 * Builds a short title out of a photo's description, cut on a word
+	 * boundary so it stays readable in a single-line card.
+	 *
+	 * @param string $description Plain-text description.
+	 * @return string Title text, or an empty string if nothing usable remains.
+	 */
+	private static function title_from_description( $description ) {
+		$text = trim( preg_replace( '/\s+/', ' ', $description ) );
+		if ( '' === $text ) {
+			return '';
+		}
+
+		/**
+		 * Filters how many characters of the description may be used as a title.
+		 *
+		 * @param int $length Maximum title length in characters.
+		 */
+		$length = (int) apply_filters( 'pdi_description_title_length', 60 );
+
+		if ( mb_strlen( $text ) > $length ) {
+			$words = explode( ' ', $text );
+			$text  = '';
+			foreach ( $words as $word ) {
+				$candidate = '' === $text ? $word : $text . ' ' . $word;
+				if ( '' !== $text && mb_strlen( $candidate ) > $length ) {
+					break;
+				}
+				$text = $candidate;
+			}
+			$text  = rtrim( mb_substr( $text, 0, $length ), " \t\n\r\0\x0B.,;:-" );
+			$text .= '…';
+		}
+
+		return ucfirst( $text );
+	}
+
+	/**
+	 * Whether a slug is an opaque upstream identifier rather than words.
+	 * The Photo Directory names most photos with a short hex string, which
+	 * makes for a meaningless title.
+	 *
+	 * @param string $slug Post slug.
+	 * @return bool True when the slug carries no human meaning.
+	 */
+	private static function is_opaque_slug( $slug ) {
+		return 1 === preg_match( '/^[0-9a-f]{6,}$/i', $slug );
 	}
 
 	/**
