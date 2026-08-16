@@ -46,6 +46,7 @@ class PDI_Plugin {
 		add_action( 'media_buttons', array( $this, 'media_button' ), 20 );
 
 		add_action( 'wp_ajax_pdi_search', array( 'PDI_API', 'ajax_search' ) );
+		add_action( 'wp_ajax_pdi_terms', array( 'PDI_API', 'ajax_terms' ) );
 		add_action( 'wp_ajax_pdi_import', array( 'PDI_Importer', 'ajax_import' ) );
 	}
 
