@@ -1,0 +1,113 @@
+.pdi-app,
+.pdi-modal-body {
+	max-width: 900px;
+}
+
+.pdi-searchbar {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+
+.pdi-search-input {
+	flex: 1;
+	padding: 6px 8px;
+	font-size: 14px;
+}
+
+.pdi-status {
+	min-height: 20px;
+	color: #646970;
+	margin-bottom: 8px;
+}
+
+.pdi-grid {
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax( 160px, 1fr ) );
+	gap: 14px;
+}
+
+.pdi-card {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	overflow: hidden;
+	background: #fff;
+	display: flex;
+	flex-direction: column;
+}
+
+.pdi-card img {
+	width: 100%;
+	height: 120px;
+	object-fit: cover;
+	display: block;
+	background: #f0f0f1;
+}
+
+.pdi-card-title {
+	font-size: 12px;
+	padding: 6px 8px 0;
+	color: #1d2327;
+	line-height: 1.3;
+}
+
+.pdi-card-actions {
+	padding: 6px 8px 8px;
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	align-items: center;
+	margin-top: auto;
+}
+
+.pdi-card.pdi-imported {
+	border-color: #00a32a;
+}
+
+.pdi-imported-label {
+	color: #00a32a;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.pdi-load-more {
+	display: block;
+	margin: 16px auto 0;
+}
+
+.pdi-modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba( 0, 0, 0, 0.6 );
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pdi-modal-box {
+	background: #fff;
+	width: 90%;
+	max-width: 960px;
+	max-height: 85vh;
+	overflow: auto;
+	position: relative;
+	border-radius: 4px;
+	padding: 24px;
+}
+
+.pdi-modal-close {
+	position: absolute;
+	top: 8px;
+	right: 12px;
+	background: none;
+	border: none;
+	font-size: 28px;
+	line-height: 1;
+	cursor: pointer;
+	color: #646970;
+}
+
+.pdi-modal-close:hover {
+	color: #1d2327;
+}
