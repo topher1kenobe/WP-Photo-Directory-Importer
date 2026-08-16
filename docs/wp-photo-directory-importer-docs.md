@@ -1,6 +1,6 @@
 # WP Photo Directory Importer — Documentation
 
-Version 1.1.0 · Last reviewed 2026-08-16
+Version 1.3.3 · Last reviewed 2026-08-16
 
 This file contains three documents:
 
@@ -21,16 +21,15 @@ Once a photo is imported, it becomes a normal attachment. It works as a featured
 
 ## How It Works
 
-The plugin adds four ways to reach the photo search.
+The plugin adds three ways to reach the photo search.
 
 | Entry Point | Where It Appears | What It Does |
 |---|---|---|
 | **Media > Photo Directory** | A page under the **Media** menu | Shows the search grid directly on the page |
 | **Photo Directory** tab | Inside the standard WordPress media picker, next to **Upload files** and **Media Library** | Shows the search grid inside the picker that is already open |
 | **Photo Directory** button | Next to **Add Media** in the classic editor | Opens the search grid in a pop-up window |
-| **Photo Directory** panel | The block editor sidebar | Opens the search grid in a pop-up window from an **Import a photo…** button |
 
-The search grid works the same way in all four places. It loads the newest photos when it opens. Typing a term and selecting **Search photos…** returns matching results, 20 at a time. A **Load more** button appears when more results are available.
+The search grid works the same way in all three places. It loads the newest photos when it opens. Typing a term and selecting **Search photos…** returns matching results, 20 at a time. A **Load more** button appears when more results are available.
 
 Each result shows a thumbnail, a caption line, and an **Import** button. Selecting **Import** downloads the photo and saves it to the site's Media Library.
 
@@ -42,15 +41,15 @@ In that tab, selecting **Import** does three things at once: it saves the photo 
 
 ### Everywhere Else
 
-On the **Media > Photo Directory** page, and in the pop-up window opened from the classic editor button or the block editor sidebar panel, an imported card shows an **Imported** label and a **View in Media Library** link that opens the new attachment in a new browser tab.
+On the **Media > Photo Directory** page, and in the pop-up window opened from the classic editor button, an imported card shows an **Imported** label and a **View in Media Library** link that opens the new attachment in a new browser tab.
 
-In the classic editor and the block editor pop-up window, imported cards also show a **Use as featured image** button that sets the photo as the featured image for the post being edited. This button does not appear on the **Media > Photo Directory** page, because that page is not tied to a specific post.
+In the classic editor's pop-up window, imported cards also show a **Use as featured image** button that sets the photo as the featured image for the post being edited. This button does not appear on the **Media > Photo Directory** page, because that page is not tied to a specific post. The block editor doesn't have a separate pop-up window at all — its only entry point is the **Photo Directory** tab described above, inside the picker itself.
 
 ### What Lands In The Media Library
 
-Imported photos appear in **Media > Library** alongside regular uploads. The photo's descriptive sentence from the Photo Directory is saved as the attachment's description and caption.
+Imported photos appear in **Media > Library** alongside regular uploads. The photo's descriptive sentence from the Photo Directory is saved as both the attachment's **Description** and its **Alternative Text**. The **Caption** field holds only a photographer credit line (e.g. "Photo by Jane Smith, via the WordPress Photo Directory"), when the Photo Directory exposes an author name for that photo — it's left empty otherwise.
 
-Two fields are worth setting by hand after import: the **Title** and the **Alternative Text**. The Photo Directory's public data currently returns the same generic value, `Photo detail`, for every photo's title, and it returns no alt text at all. The plugin stores those values as it receives them. The photo's real description is saved correctly, so it is a good starting point for writing both fields. Setting the alt text matters for readers who use screen readers.
+The **Title** field uses the photo's own title from the Photo Directory when one exists. Some photos on the Photo Directory only have a generic placeholder title (currently "Photo Detail", "Untitled", or "Untitled Photo") because the original uploader never set a real one — the plugin recognizes those placeholders and falls back to a title built from the photo's URL slug instead (for example, a slug of `red-fox-in-snow` becomes "Red fox in snow"), falling back further to "Untitled photo" if the slug isn't usable either. It's still worth a glance at imported titles before publishing, since a slug-derived title is a best-effort guess, not guaranteed to read naturally.
 
 The plugin also saves three hidden values on each attachment so the original photo can be traced later:
 
@@ -69,7 +68,7 @@ Photos on the WordPress Photo Directory are released under CC0, so credit is opt
 - The site runs WordPress 5.8 or later and PHP 7.4 or later.
 - The server can make outbound HTTP requests to wordpress.org. The plugin reads from a public address, so no API key or account is needed.
 - The user account has the **Upload Files** capability. Administrators, Editors, and Authors have this capability by default. Accounts without it will not see the photo search.
-- The **Photo Directory** button next to **Add Media** appears only on sites that use the classic editor. Sites running the block editor alone will use the media picker tab, the sidebar panel, or the Media page instead.
+- The **Photo Directory** button next to **Add Media** appears only on sites that use the classic editor. Sites running the block editor alone will use the media picker tab or the Media page instead.
 
 ## Steps To Set Up
 
@@ -88,24 +87,24 @@ The plugin has no settings screen. It is ready to use as soon as it is active.
 2. Type a common search term, such as `flower`, into the search field and select **Search photos…**. Matching photos appear in the grid.
 3. Select **Load more** at the bottom of the grid. A further 20 photos are added below the first set.
 4. Select **Import** on any photo. The button changes to **Importing…**, then to an **Imported** label.
-5. Select **View in Media Library**. The attachment opens in a new tab. Confirm the description field holds a sentence describing the photo.
-6. Set the **Title** and **Alternative Text** fields for that attachment and select **Update**.
-7. Go to **Media > Library** and confirm the photo appears there alongside regular uploads.
-8. Return to **Media > Photo Directory**, search for the same photo, and import it again. The plugin returns the existing attachment rather than adding a duplicate to the library.
+5. Select **View in Media Library**. The attachment opens in a new tab. Confirm the description and alt text fields both hold a sentence describing the photo, and the caption holds a photographer credit line (or is empty, if the Photo Directory didn't provide an author name).
+6. Go to **Media > Library** and confirm the photo appears there alongside regular uploads.
+7. Return to **Media > Photo Directory**, search for the same photo, and import it again. The plugin returns the existing attachment rather than adding a duplicate to the library.
 
 ### Test The Media Picker Tab
 
-9. Open a post in the block editor.
-10. In the sidebar, open the **Featured image** panel and select **Set featured image**. The standard WordPress media picker opens.
-11. Select the **Photo Directory** tab at the top of the picker, next to **Upload files** and **Media Library**.
-12. Search for a photo and select **Import**. The card is marked **Selected**, and the picker returns to its **Media Library** view with the new photo highlighted.
-13. Select **Set featured image** in the picker. The picker closes and the photo appears in the **Featured image** panel.
-14. Publish or update the post, then view it on the front end to confirm the featured image displays.
+8. Open a post in the block editor.
+9. In the sidebar, open the **Featured image** panel and select **Set featured image**. The standard WordPress media picker opens.
+10. Select the **Photo Directory** tab at the top of the picker, next to **Upload files** and **Media Library**.
+11. Search for a photo and select **Import**. The card is marked **Selected**, and the picker returns to its **Media Library** view with the new photo highlighted.
+12. Select **Set featured image** in the picker. The picker closes and the photo appears in the **Featured image** panel.
+13. Publish or update the post, then view it on the front end to confirm the featured image displays.
 
-### Test The Sidebar Panel
+### Test The Classic Editor Button
 
-15. Still in the block editor, find the **Photo Directory** panel in the sidebar and select **Import a photo…**.
-16. Import a photo in the pop-up window, then select **Use as featured image**. The pop-up closes and the featured image is replaced.
+14. Open a post in the classic editor.
+15. Select the **Photo Directory** button next to **Add Media**. A pop-up window opens with the same search grid.
+16. Import a photo, then select **Use as featured image**. The pop-up closes and the featured image is replaced.
 
 After testing, any unwanted photos can be removed from **Media > Library** the same way as any other attachment.
 
@@ -114,22 +113,19 @@ After testing, any unwanted photos can be removed from **Media > Library** the s
 
 # Troubleshooting Guide
 
-Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.1.0 running on WordPress 7.1 and PHP 8.2.
+Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.3.
 
-## Problem: Every Imported Photo Is Named "Photo Detail" And Has The Same Alt Text
+## Problem: An Imported Photo's Title Reads Like A URL Slug (e.g. "Red fox in snow")
 
 ### Cause
 
-This is expected behavior with the current upstream data, not a broken install. The Photo Directory REST API returns `title.rendered` as the literal string `Photo detail` for every record. That value is the label of the photo's web page, not the photo's name. The API also returns an empty `alt_text` on the embedded media object, so `PDI_API::normalize_item()` falls back to the title, and the same generic string is written to `_wp_attachment_image_alt`.
-
-The photo's real descriptive text is present in `content.rendered`, and the plugin already saves it as the attachment's description and caption.
+This is expected behavior, not a broken install. Some photos on the Photo Directory only have a generic placeholder title (currently `Photo Detail`, `Untitled`, or `Untitled Photo`) because the original uploader never set a real one. `PDI_API::normalize_item()` in `includes/class-pdi-api.php` recognizes those placeholders and falls back to a title built from the photo's URL slug instead, so the attachment gets something more specific than a placeholder that would otherwise be identical across many photos.
 
 ### Solution
 
-1. Confirm the description field on the attachment holds a real sentence. If it does, the import worked correctly and only the title and alt text need attention.
-2. Advise the site owner to set the **Title** and **Alternative Text** on each imported attachment. The saved description is a good source for both.
-3. For a permanent fix, `normalize_item()` in `includes/class-pdi-api.php` would need to derive the title and alt text from `content.rendered` rather than from `title.rendered`. Note that alt text of `Photo detail` is worse for screen reader users than no alt text at all, so this is worth prioritizing on accessibility grounds.
-4. To find affected attachments already in a library, query for attachments with the `_pdi_imported` meta key.
+1. This isn't a bug to fix — it's a best-effort fallback for photos with no real title upstream. Confirm the description and alt text fields hold a real, specific sentence; if they do, the import worked correctly and only the title is a fallback guess.
+2. If the fallback title reads awkwardly, editors can just retitle the attachment by hand — the slug-derived text is meant as a reasonable starting point, not a final title.
+3. The list of recognized placeholder strings is filterable via `pdi_generic_title_placeholders`, in case the Photo Directory introduces a new placeholder string this plugin doesn't yet recognize.
 
 ## Problem: The Photo Directory Page, Tab, Or Button Does Not Appear
 
@@ -244,27 +240,16 @@ Duplicate protection relies on a `get_posts()` lookup against the `_pdi_source_i
 
 ### Cause
 
-That button appears only in the plugin's own pop-up window, and only when the window was opened with a post to attach to. Three cases explain every report:
+That button appears only in the classic editor's pop-up window, and only because that window is tied to the post being edited. Three cases explain every report:
 
 - On the **Media > Photo Directory** page, the button is correctly absent, because that page is not tied to a post.
-- Inside the media picker tab, the button is replaced by the picker's own **Set featured image** button. An imported card shows **Selected** instead.
-- In the classic editor and block editor pop-up windows, the button should be present.
+- Inside the media picker tab (both classic and block editor use this for Set Featured Image, Add Media, etc.), there's no such button at all — the picker's own **Set featured image** button does the job instead, once the imported card shows **Selected**.
+- In the classic editor's pop-up window (opened via the button next to **Add Media**), the button should be present.
 
 ### Solution
 
 1. Confirm which entry point the user opened, and compare it against the three cases above.
-2. If the button is missing from the classic or block editor pop-up window, check the browser console. In the classic editor the action depends on `wp.media.featuredImage`; in the block editor it depends on the `core/editor` data store.
-
-## Problem: A Deprecation Warning Appears In The Console On Post Edit Screens
-
-### Cause
-
-`assets/js/block-editor.js` builds the sidebar panel with `wp.editPost.PluginDocumentSettingPanel`. WordPress marks that export as deprecated from version 6.6 onward, and WordPress 7.1 logs a deprecation notice through `deprecateSlot()`. The export still forwards to the current API, so the panel renders normally.
-
-### Solution
-
-1. Confirm the panel still appears and works. The warning alone does not break anything today.
-2. To clear the warning and guard against future removal, change the import to `wp.editor.PluginDocumentSettingPanel` and update the script's registered dependency from `wp-edit-post` to `wp-editor`.
+2. If the button is missing from the classic editor's pop-up window, check the browser console — the action depends on `wp.media.featuredImage` being available.
 
 ## Known Documentation Gaps In The Plugin Package
 
@@ -272,8 +257,6 @@ These affect the plugin's own bundled files, not site behavior. They are worth c
 
 | File | Issue |
 |---|---|
-| `readme.txt` | The **Entry points** list names three entry points. The media picker tab added in 1.1.0 appears only in the changelog. |
-| `README.md` | Same three-entry-point list, and the file responsibility table omits `assets/js/media-modal.js`. |
 | `wp-photo-directory-importer.php` | The **Plugin URI** and **Author URI** headers still contain the placeholder `your-username`. |
 
 ## Additional Resources
@@ -315,7 +298,7 @@ The clearest way to see the feature is through the standard WordPress image pick
 
 Selecting that tab turns the picker into a photo search. Typing a word returns a grid of matching photos from the community library, loading more on request. Selecting **Import** on a photo saves it to the site's own Media Library and hands it straight back to the picker with the photo already chosen. Finishing the job uses the same button the picker always had. The photo is now an ordinary library item, so it behaves from that point on exactly like a photo that had been uploaded weeks ago.
 
-For browsing rather than picking, a dedicated page under the **Media** menu shows the same search on its own. Two more entry points sit inside the post editor for people who prefer to work from the sidebar.
+For browsing rather than picking, a dedicated page under the **Media** menu shows the same search on its own. A third entry point sits next to **Add Media** in the classic editor, for people who prefer a dedicated button over the picker tab.
 
 Every import records where the photo came from and who uploaded it, so credit can be added when a site chooses to give it. Importing the same photo twice reuses the copy already in the library, which keeps things tidy.
 
@@ -323,16 +306,16 @@ Every import records where the photo came from and who uploaded it, so credit ca
 
 - **A free, pre-cleared image source.** Every photo on the WordPress Photo Directory is CC0, so it can be used commercially with no license fee and no required attribution.
 - **It appears inside the picker people already use.** The **Photo Directory** tab sits in the standard WordPress image picker, so finding a photo happens in the same window and the same moment as choosing one. There is no separate trip to a search page and back.
-- **Four entry points that match how people work.** The media picker tab, a standalone Media page for browsing, and in-editor access from both the classic editor and the block editor.
+- **Three entry points that match how people work.** The media picker tab (available to both the classic and block editor), a standalone Media page for browsing, and a dedicated button in the classic editor toolbar.
 - **A workflow contained inside WordPress.** Search, preview, and import happen in the admin, replacing the visit-download-upload cycle that an external stock site requires.
 - **Real Media Library attachments.** Imported photos are ordinary attachments, so they work with existing themes, page builders, image optimization plugins, and CDNs with no special handling.
-- **Photo descriptions carried over.** Each photo's descriptive sentence is saved with the attachment, which gives editors a starting point for titles, captions, and alt text.
+- **Photo descriptions carried over.** Each photo's descriptive sentence is saved as both the attachment's description and its alt text, giving screen reader users real coverage on arrival rather than requiring manual cleanup first.
 - **Duplicate protection.** Repeat imports of the same photo reuse the existing attachment instead of adding another copy.
-- **Source tracking on every import.** The original photo address and the uploader's name are stored with the attachment, so credit remains available even though CC0 does not require it.
+- **Source tracking on every import.** The original photo address and the uploader's name are stored with the attachment, and a credit line is added to the caption automatically when an author name is available.
 - **No account, no key, no setup screen.** The plugin works as soon as it is activated.
 - **Complements existing media tools.** The plugin adds a source of images. It does not replace the Media Library, image optimization plugins, or a digital asset manager, and it runs alongside them.
 - **Audience reach.** WordPress powers a large share of the web, and the Photo Directory is maintained by the WordPress community itself, which makes it a natural fit for sites already invested in that ecosystem.
 
 ### Note For Planning
 
-Photo titles and alt text currently arrive as a generic placeholder from the Photo Directory's public data, so editors set those two fields by hand after import. The photo's description carries over correctly. Marketing material should avoid claiming that imported photos are fully labelled on arrival until this is addressed.
+Photo titles occasionally arrive as a slug-derived fallback rather than a hand-written title, for photos the original uploader never titled — worth a glance before publishing, but not something that needs manual cleanup across every import. Descriptions and alt text arrive populated and usable on import.
