@@ -183,9 +183,8 @@ class PDI_API {
 	 *     @type string $slug        Upstream slug.
 	 *     @type string $author      Uploader display name, if available.
 	 *     @type string $alt         Alt text. Prefers a real alt-text field if the API exposes
-	 *                               one; otherwise reuses the photo's description text, since
-	 *                               that appears to be the closest thing to alt text this API
-	 *                               offers. Empty only if the photo has no description either.
+	 *                               one; otherwise falls back to the photo's excerpt specifically
+	 *                               (not the longer content/description). Empty if neither exists.
 	 *     @type string $thumbUrl    Best-guess thumbnail URL for grid display.
 	 *     @type array  $sizes       Map of size name => [ url, width, height ].
 	 * }
@@ -210,6 +209,8 @@ class PDI_API {
 		} elseif ( ! empty( $item['excerpt']['rendered'] ) ) {
 			$description = wp_strip_all_tags( $item['excerpt']['rendered'] );
 		}
+
+		$excerpt = isset( $item['excerpt']['rendered'] ) ? trim( wp_strip_all_tags( $item['excerpt']['rendered'] ) ) : '';
 
 		$sizes = array();
 		$alt   = '';
@@ -265,12 +266,12 @@ class PDI_API {
 		$alt = is_string( $alt ) ? trim( wp_strip_all_tags( $alt ) ) : '';
 
 		// The Photo Directory doesn't appear to expose a dedicated alt-text
-		// field at all — the descriptive text uploaders enter comes through
-		// as content/excerpt (already captured above as $description), and
-		// that's the closest thing to real alt text this API offers. Reuse
-		// it rather than leaving alt text empty.
-		if ( empty( $alt ) && ! empty( $description ) ) {
-			$alt = $description;
+		// field at all. Fall back specifically to the excerpt (not the
+		// longer content/description) — deliberately not reusing
+		// $description here, since $description prefers content and can be
+		// considerably longer than what's appropriate for alt text.
+		if ( empty( $alt ) && ! empty( $excerpt ) ) {
+			$alt = $excerpt;
 		}
 
 		$author = '';

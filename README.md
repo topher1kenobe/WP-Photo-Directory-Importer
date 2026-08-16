@@ -55,11 +55,12 @@ Every imported attachment gets:
   (e.g. `red-fox-in-snow` → "Red fox in snow"), falling back further to
   "Untitled photo" if the slug isn't usable either.
 - **Alt text** — prefers a real alt-text field if the upstream API exposes
-  one, otherwise reuses the photo's description (the closest thing to alt
-  text the Photo Directory API appears to offer). Never derived from the
-  title.
-- **Caption** (`post_excerpt`) — the photo's description, with a
-  "Photo by {name}" credit line appended when the API exposes an author.
+  one, otherwise falls back to the photo's excerpt specifically (not the
+  longer content/description). Never derived from the title.
+- **Caption** (`post_excerpt`) — *only* the "Photo by {name}" credit line,
+  when the API exposes an author name; empty otherwise. The photo's full
+  description lives in the Description field (`post_content`) instead,
+  not duplicated here.
 - Three meta fields so you can trace it back to its source:
 
 | Meta key | Value |

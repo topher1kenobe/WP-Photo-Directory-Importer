@@ -157,26 +157,24 @@ class PDI_Importer {
 	}
 
 	/**
-	 * Builds the attachment caption (post_excerpt): the photo's description,
-	 * if any, with a photographer credit line appended when the upstream
-	 * API exposes an author name.
+	 * Builds the attachment caption (post_excerpt): just the photographer
+	 * credit line, when the upstream API exposes an author name. The
+	 * photo's description text lives in post_content instead (the
+	 * "Description" field), not here.
 	 *
 	 * @param array $photo Normalized photo data.
-	 * @return string Caption text.
+	 * @return string Caption text, or an empty string if no author is available.
 	 */
 	private static function build_caption( $photo ) {
-		$caption = ! empty( $photo['description'] ) ? $photo['description'] : '';
-
-		if ( ! empty( $photo['author'] ) ) {
-			$credit = sprintf(
-				/* translators: %s: photographer's display name */
-				__( 'Photo by %s, via the WordPress Photo Directory.', 'pdi' ),
-				$photo['author']
-			);
-			$caption = $caption ? $caption . "\n\n" . $credit : $credit;
+		if ( empty( $photo['author'] ) ) {
+			return '';
 		}
 
-		return $caption;
+		return sprintf(
+			/* translators: %s: photographer's display name */
+			__( 'Photo by %s, via the WordPress Photo Directory.', 'pdi' ),
+			$photo['author']
+		);
 	}
 
 	/**
