@@ -83,9 +83,10 @@ class PDI_Importer {
 				'post_status' => 'inherit',
 				'numberposts' => 1,
 				'fields'      => 'ids',
-				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- exact-match lookup on a plugin-owned meta key, no indexed alternative available.
+				// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- exact-match lookup on a plugin-owned meta key, no indexed alternative available.
 				'meta_key'    => self::META_SOURCE_ID,
 				'meta_value'  => $photo_id,
+				// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 			)
 		);
 		return $existing ? intval( $existing[0] ) : 0;
