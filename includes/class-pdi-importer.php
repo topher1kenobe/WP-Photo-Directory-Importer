@@ -89,6 +89,61 @@ class PDI_Importer {
 	}
 
 	/**
+	 * Resolve a whole page of upstream photo IDs to the local attachments
+	 * they were imported as, so the grid can mark them without asking one
+	 * question per card.
+	 *
+	 * Runs two queries regardless of how many photos are passed in: one to
+	 * find the matching attachments, one to prime their meta cache.
+	 *
+	 * @param int[] $photo_ids Upstream Photo Directory IDs.
+	 * @return array Map of upstream photo ID => local attachment ID.
+	 */
+	public static function find_existing_attachments( $photo_ids ) {
+		$photo_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $photo_ids ) ) ) );
+		if ( empty( $photo_ids ) ) {
+			return array();
+		}
+
+		$attachment_ids = get_posts(
+			array(
+				'post_type'              => 'attachment',
+				'post_status'            => 'inherit',
+				'numberposts'            => -1,
+				'fields'                 => 'ids',
+				'orderby'                => 'ID',
+				'order'                  => 'ASC',
+				'no_found_rows'          => true,
+				'update_post_term_cache' => false,
+				'meta_query'             => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- batched exact-match lookup on a plugin-owned meta key, deliberately replacing one query per card.
+					array(
+						'key'     => self::META_SOURCE_ID,
+						'value'   => $photo_ids,
+						'compare' => 'IN',
+					),
+				),
+			)
+		);
+
+		if ( empty( $attachment_ids ) ) {
+			return array();
+		}
+
+		update_meta_cache( 'post', $attachment_ids );
+
+		$map = array();
+		foreach ( $attachment_ids as $attachment_id ) {
+			$photo_id = absint( get_post_meta( $attachment_id, self::META_SOURCE_ID, true ) );
+			// Keep the earliest import when a photo somehow has more than one.
+			if ( $photo_id && ! isset( $map[ $photo_id ] ) ) {
+				$map[ $photo_id ] = intval( $attachment_id );
+			}
+		}
+
+		return $map;
+	}
+
+	/**
 	 * Downloads the chosen size of a normalized photo and sideloads it into
 	 * the Media Library.
 	 *
@@ -224,17 +279,19 @@ class PDI_Importer {
 	 * @return array {
 	 *     @type int    $id       Attachment ID.
 	 *     @type string $title    Attachment title.
-	 *     @type string $thumbUrl Medium-size (or original) image URL.
-	 *     @type string $editUrl  Admin edit-attachment URL.
+	 *     @type string $thumbUrl   Medium-size (or original) image URL.
+	 *     @type string $editUrl    Admin edit-attachment URL.
+	 *     @type string $libraryUrl Media Library URL focused on this attachment.
 	 * }
 	 */
 	private static function attachment_response( $attachment_id ) {
 		$image = wp_get_attachment_image_src( $attachment_id, 'medium' );
 		return array(
-			'id'       => $attachment_id,
-			'title'    => get_the_title( $attachment_id ),
-			'thumbUrl' => $image ? $image[0] : wp_get_attachment_url( $attachment_id ),
-			'editUrl'  => admin_url( 'post.php?post=' . $attachment_id . '&action=edit' ),
+			'id'         => $attachment_id,
+			'title'      => get_the_title( $attachment_id ),
+			'thumbUrl'   => $image ? $image[0] : wp_get_attachment_url( $attachment_id ),
+			'editUrl'    => admin_url( 'post.php?post=' . $attachment_id . '&action=edit' ),
+			'libraryUrl' => admin_url( 'upload.php?item=' . $attachment_id ),
 		);
 	}
 }

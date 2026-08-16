@@ -64,6 +64,12 @@ class PDI_API {
 			wp_send_json_error( array( 'message' => $result->get_error_message() ), 500 );
 		}
 
+		// Resolved outside search() on purpose: the search payload is cached
+		// for five minutes, but which photos are already in the library
+		// changes the moment one is imported.
+		$result['importedMap'] = PDI_Importer::find_existing_attachments( wp_list_pluck( $result['photos'], 'id' ) );
+		$result['libraryUrl']  = admin_url( 'upload.php' );
+
 		wp_send_json_success( $result );
 	}
 
