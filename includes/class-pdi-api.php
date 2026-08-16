@@ -405,6 +405,8 @@ class PDI_API {
 	 *     @type string $mime        MIME type of the original, e.g. 'image/jpeg'.
 	 *     @type int    $filesize    Size of the original in bytes, 0 when unknown.
 	 *     @type array  $terms       Map of taxonomy name => list of term IDs.
+	 *     @type string $credit      Photographer credit line the importer would write as
+	 *                               the caption, so the UI can prefill it.
 	 * }
 	 */
 	public static function normalize_item( $item ) {
@@ -535,7 +537,7 @@ class PDI_API {
 
 		$full = ! empty( $sizes['full'] ) ? $sizes['full'] : self::largest_size( $sizes );
 
-		return array(
+		$photo = array(
 			'id'          => $id,
 			'title'       => $title ? $title : __( 'Untitled photo', 'pdi' ),
 			'description' => $description,
@@ -551,6 +553,10 @@ class PDI_API {
 			'filesize'    => $filesize,
 			'terms'       => self::extract_terms( $item ),
 		);
+
+		$photo['credit'] = PDI_Importer::build_credit_line( $photo );
+
+		return $photo;
 	}
 
 	/**

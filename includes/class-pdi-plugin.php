@@ -78,13 +78,22 @@ class PDI_Plugin {
 
 		wp_register_script( 'pdi-admin', PDI_PLUGIN_URL . 'assets/js/admin.js', array(), PDI_VERSION, true );
 
+		wp_register_style(
+			'pdi-media-tab',
+			PDI_PLUGIN_URL . 'assets/css/media-tab.css',
+			array( 'dashicons' ),
+			PDI_VERSION
+		);
+
 		wp_register_script(
 			'pdi-media-modal',
 			PDI_PLUGIN_URL . 'assets/js/media-modal.js',
-			array( 'pdi-admin', 'media-views' ),
+			array( 'media-views' ),
 			PDI_VERSION,
 			true
 		);
+
+		wp_localize_script( 'pdi-media-modal', 'PDI_Modal', $this->modal_settings() );
 
 		wp_localize_script(
 			'pdi-admin',
@@ -234,6 +243,62 @@ class PDI_Plugin {
 	}
 
 	/**
+	 * Data handed to the "Photo Directory" tab inside the wp.media modal.
+	 * Shares the AJAX endpoints and import sizes with the browse screen but
+	 * carries its own strings, since the tab talks about inserting into a
+	 * post rather than about the Media Library on its own.
+	 *
+	 * @return array Settings consumed by assets/js/media-modal.js.
+	 */
+	private function modal_settings() {
+		$browser = $this->browser_settings();
+
+		return array(
+			'ajaxUrl' => $browser['ajaxUrl'],
+			'nonce'   => $browser['nonce'],
+			'sizes'   => $browser['sizes'],
+			'strings' => array(
+				'tabLabel'          => __( 'Photo Directory', 'pdi' ),
+				'searchPlaceholder' => __( 'Search photos', 'pdi' ),
+				'searchLabel'       => __( 'Search photos', 'pdi' ),
+				'allCategories'     => __( 'All categories', 'pdi' ),
+				'anyOrientation'    => __( 'Any orientation', 'pdi' ),
+				'sortLabel'         => __( 'Sort results', 'pdi' ),
+				'sortRelevance'     => __( 'Most relevant', 'pdi' ),
+				'sortNewest'        => __( 'Newest', 'pdi' ),
+				/* translators: %s: photo title */
+				'selectPhoto'       => __( 'Select %s', 'pdi' ),
+				'inLibrary'         => __( 'In library', 'pdi' ),
+				'loading'           => __( 'Loading…', 'pdi' ),
+				'loadMore'          => __( 'Load more photos', 'pdi' ),
+				'noResults'         => __( 'No photos found. Try a broader term, or drop a filter.', 'pdi' ),
+				'error'             => __( 'The Photo Directory API didn’t respond. Your Media Library is unaffected.', 'pdi' ),
+
+				'detailsLabel'      => __( 'Photo details', 'pdi' ),
+				'detailsEmpty'      => __( 'Select a photo to see its details.', 'pdi' ),
+				/* translators: %s: photographer's display name */
+				'byLine'            => __( 'By %s · CC0', 'pdi' ),
+				'fieldTitle'        => __( 'Title', 'pdi' ),
+				'fieldAlt'          => __( 'Alt text', 'pdi' ),
+				'fieldAltHint'      => __( 'describe the photo', 'pdi' ),
+				'fieldCaption'      => __( 'Caption', 'pdi' ),
+				'importSize'        => __( 'Import size', 'pdi' ),
+
+				'nothingSelected'   => __( 'No photos selected', 'pdi' ),
+				/* translators: %s: number of photos selected */
+				'selectedStatus'    => __( '%s selected · imported to your Media Library on insert', 'pdi' ),
+				/* translators: %s: number of photos selected */
+				'selectedStatusOne' => __( '1 selected · imported to your Media Library on insert', 'pdi' ),
+				'importOnly'        => __( 'Import only', 'pdi' ),
+				'insertIntoPost'    => __( 'Insert into post', 'pdi' ),
+				/* translators: 1: current photo number, 2: total photos */
+				'importingProgress' => __( 'Importing %1$s of %2$s…', 'pdi' ),
+				'importFailed'      => __( 'Some photos could not be imported.', 'pdi' ),
+			),
+		);
+	}
+
+	/**
 	 * Adds the "Media > Photo Directory" admin page.
 	 */
 	public function register_admin_page() {
@@ -274,6 +339,7 @@ class PDI_Plugin {
 		if ( in_array( $hook, array( 'post.php', 'post-new.php' ), true ) && current_user_can( 'upload_files' ) ) {
 			wp_enqueue_style( 'pdi-admin' );
 			wp_enqueue_script( 'pdi-admin' );
+			wp_enqueue_style( 'pdi-media-tab' );
 			wp_enqueue_media();
 			wp_enqueue_script( 'pdi-media-modal' );
 		}
@@ -290,6 +356,7 @@ class PDI_Plugin {
 		}
 		wp_enqueue_style( 'pdi-admin' );
 		wp_enqueue_script( 'pdi-admin' );
+		wp_enqueue_style( 'pdi-media-tab' );
 		wp_enqueue_media();
 		wp_enqueue_script( 'pdi-media-modal' );
 	}

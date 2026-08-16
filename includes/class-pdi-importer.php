@@ -277,10 +277,14 @@ class PDI_Importer {
 	 * (post_excerpt); the photo's own description text goes in the
 	 * Description field (post_content) — and, as alt text — instead.
 	 *
+	 * Public because the browse UI prefills its caption field with this
+	 * exact line, filters included, so what the editor sees is what gets
+	 * written.
+	 *
 	 * @param array $photo Normalized photo data.
 	 * @return string Credit line, or an empty string if no author is available.
 	 */
-	private static function build_credit_line( $photo ) {
+	public static function build_credit_line( $photo ) {
 		if ( empty( $photo['author'] ) ) {
 			return '';
 		}

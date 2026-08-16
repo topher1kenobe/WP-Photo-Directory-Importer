@@ -148,13 +148,13 @@ Every entry point is gated on the `upload_files` capability. The **Media > Photo
 
 ### Cause
 
-The tab is added by `assets/js/media-modal.js`, which patches `wp.media.view.MediaFrame.Select` and `wp.media.view.MediaFrame.Post`. It is enqueued only on `post.php` and `post-new.php`, and it depends on both `pdi-admin` and WordPress's own `media-views` script. The file also guards itself: if `wp.media`, `wp.media.view.MediaFrame`, or `window.PDI` is unavailable when it runs, it exits without doing anything.
+The tab is added by `assets/js/media-modal.js`, which patches `wp.media.view.MediaFrame.Select` and `wp.media.view.MediaFrame.Post`. It is enqueued only on `post.php` and `post-new.php`, and it depends on WordPress's own `media-views` script plus the `pdi-media-tab` stylesheet. The file also guards itself: if `wp.media` or `wp.media.view.MediaFrame` is unavailable when it runs, it exits without doing anything.
 
 ### Solution
 
 1. Confirm the screen is a post edit screen. The tab is not added on other admin screens, including **Media > Library**.
 2. Open the browser console and look for the warning `WP Photo Directory Importer: could not add media modal tab.` That message means `wp.media`'s internals changed shape and the patch was skipped. The plugin fails quietly here on purpose, so the rest of the media picker keeps working.
-3. Confirm `media-modal.js` and `admin.js` both load on the page. Both are required.
+3. Confirm `media-modal.js` loads on the page, along with WordPress's own `media-views.js`.
 4. If a custom media frame is in use, check whether it extends `MediaFrame.Select` or `MediaFrame.Post`. Frames built from other base classes will not receive the tab.
 
 ## Problem: The Search Grid Shows "Something Went Wrong. Please Try Again."
