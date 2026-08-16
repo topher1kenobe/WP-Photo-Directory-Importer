@@ -111,7 +111,7 @@ Pull requests welcome.
 
 ## Authors
 
-ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe
+ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci
 
 ## License
 

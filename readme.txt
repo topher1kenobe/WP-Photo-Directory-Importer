@@ -1,10 +1,10 @@
 === WP Photo Directory Importer ===
-Contributors: ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe
+Contributors: ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci
 Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,26 @@ Entry points:
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.3 =
+* Sanitize untrusted fields from the Photo Directory API before use: the
+  slug now goes through `sanitize_title()`, the author name through
+  `wp_strip_all_tags()`/`trim()`, and every image URL through
+  `esc_url_raw()`.
+* Moved the `wp-admin/includes/{media,file,image}.php` requires from
+  file scope into `import_photo()` itself, so they're only parsed while
+  an import is actually happening rather than on every page load
+  (this file loads on every request via `plugins_loaded`, including the
+  front end).
+* Fixed a phpcs suppression bug: the slow-query warning for
+  `meta_key`/`meta_value` was suppressed with a single `phpcs:ignore`
+  comment, which only covers the next line and so didn't actually
+  suppress the `meta_value` warning. Switched to `phpcs:disable`/
+  `phpcs:enable` spanning both lines.
+* Fixed invalid XML in `phpcs.xml.dist` — an unescaped `--` inside an XML
+  comment (`--dev`) is illegal in XML and would cause strict parsers to
+  reject the whole ruleset file.
+* Added gusteci to the plugin's Author/Contributors list.
 
 = 1.3.2 =
 * Alt text now falls back to the same description text used for the
