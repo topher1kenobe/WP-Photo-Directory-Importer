@@ -66,6 +66,14 @@ class PDI_Plugin {
 			true
 		);
 
+		wp_register_script(
+			'pdi-media-modal',
+			PDI_PLUGIN_URL . 'assets/js/media-modal.js',
+			array( 'pdi-admin', 'media-views' ),
+			PDI_VERSION,
+			true
+		);
+
 		wp_localize_script(
 			'pdi-admin',
 			'PDI_Settings',
@@ -77,12 +85,14 @@ class PDI_Plugin {
 					'import'        => __( 'Import', 'pdi' ),
 					'importing'     => __( 'Importing…', 'pdi' ),
 					'imported'      => __( 'Imported', 'pdi' ),
+					'selected'      => __( 'Selected', 'pdi' ),
 					'loadMore'      => __( 'Load more', 'pdi' ),
 					'noResults'     => __( 'No photos found.', 'pdi' ),
 					'error'         => __( 'Something went wrong. Please try again.', 'pdi' ),
 					'useFeatured'   => __( 'Use as featured image', 'pdi' ),
 					'viewInLibrary' => __( 'View in Media Library', 'pdi' ),
 					'close'         => __( 'Close', 'pdi' ),
+					'tabLabel'      => __( 'Photo Directory', 'pdi' ),
 				),
 			)
 		);
@@ -121,8 +131,9 @@ class PDI_Plugin {
 
 	/**
 	 * Load the picker UI on post edit screens (both classic and block editor
-	 * land on post.php/post-new.php) so the "Photo Directory" button and the
-	 * Gutenberg sidebar panel both have their script available.
+	 * land on post.php/post-new.php) so the "Photo Directory" button, the
+	 * Gutenberg sidebar panel, and the native media modal tab all have their
+	 * script available.
 	 *
 	 * @param string $hook The current admin page hook suffix.
 	 */
@@ -130,11 +141,15 @@ class PDI_Plugin {
 		if ( in_array( $hook, array( 'post.php', 'post-new.php' ), true ) && current_user_can( 'upload_files' ) ) {
 			wp_enqueue_style( 'pdi-admin' );
 			wp_enqueue_script( 'pdi-admin' );
+			wp_enqueue_media();
+			wp_enqueue_script( 'pdi-media-modal' );
 		}
 	}
 
 	/**
-	 * Enqueues the block editor sidebar panel script/style.
+	 * Enqueues the block editor sidebar panel script/style, plus the native
+	 * media modal tab (the block editor's Featured Image / Image block
+	 * pickers use the same underlying wp.media frame as the classic editor).
 	 */
 	public function enqueue_block_editor_assets() {
 		if ( ! current_user_can( 'upload_files' ) ) {
@@ -143,6 +158,8 @@ class PDI_Plugin {
 		wp_enqueue_style( 'pdi-admin' );
 		wp_enqueue_script( 'pdi-admin' );
 		wp_enqueue_script( 'pdi-block-editor' );
+		wp_enqueue_media();
+		wp_enqueue_script( 'pdi-media-modal' );
 	}
 
 	/**

@@ -1,10 +1,10 @@
 === WP Photo Directory Importer ===
-Contributors: yourname
+Contributors: topher
 Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,11 @@ Entry points:
   meta for your own reference.
 
 == Changelog ==
+
+= 1.1.0 =
+* Added a "Photo Directory" tab inside the native WordPress media modal
+  (Set Featured Image, Add Media, Image block, etc.), so photos can be
+  searched and imported without leaving the picker you're already in.
 
 = 1.0.0 =
 * Initial release.

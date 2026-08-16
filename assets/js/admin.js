@@ -46,8 +46,12 @@
 
 	/**
 	 * Renders a search + results-grid UI into `container`.
-	 * opts.onImport, if provided, is called with the imported attachment
-	 * object and unlocks a "use as featured image" button on each imported card.
+	 * opts.onImport, if provided, is called with the imported attachment object.
+	 * opts.autoSelect, if true, calls onImport immediately after a successful
+	 * import instead of showing an explicit "use as featured image" button —
+	 * used when the picker is embedded inside a WP media modal, where the
+	 * modal's own toolbar button (Set featured image / Insert / Select)
+	 * becomes the confirmation step instead.
 	 */
 	function PDIView( container, opts ) {
 		this.container = container;
@@ -184,6 +188,16 @@
 
 				var actions = card.querySelector( '.pdi-card-actions' );
 				actions.innerHTML = '';
+
+				if ( self.opts.autoSelect && self.opts.onImport ) {
+					actions.appendChild(
+						el( 'span', { class: 'pdi-imported-label' }, [
+							document.createTextNode( '✓ ' + S.strings.selected ),
+						] )
+					);
+					self.opts.onImport( attachment );
+					return;
+				}
 
 				actions.appendChild(
 					el( 'span', { class: 'pdi-imported-label' }, [ document.createTextNode( '✓ ' + S.strings.imported ) ] )

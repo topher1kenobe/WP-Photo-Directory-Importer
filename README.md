@@ -37,7 +37,8 @@ Directory API is public.
 
 | File | Responsibility |
 |---|---|
-| `wp-photo-directory-importer.php` | Plugin bootstrap: hooks, asset registration, admin page, media button. |
+| `wp-photo-directory-importer.php` | Plugin bootstrap: defines constants, loads the include files. |
+| `includes/class-pdi-plugin.php` | Hook registration, asset registration, admin page, media button. |
 | `includes/class-pdi-api.php` | Talks to the upstream Photo Directory REST API and normalizes its response (search + single-photo lookup, transient caching). |
 | `includes/class-pdi-importer.php` | Downloads a chosen photo and sideloads it into the local Media Library via `media_handle_sideload()`, with de-duplication. |
 | `assets/js/admin.js` | The search/grid picker UI. Renders inline on the admin page, or inside a modal when opened from the classic or block editor. |

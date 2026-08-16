@@ -111,3 +111,15 @@
 .pdi-modal-close:hover {
 	color: #1d2327;
 }
+
+/* Inside the native wp.media modal (our custom router tab) */
+.pdi-media-modal-content {
+	padding: 16px;
+	overflow-y: auto;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+.pdi-media-modal-content .pdi-app {
+	max-width: none;
+}
