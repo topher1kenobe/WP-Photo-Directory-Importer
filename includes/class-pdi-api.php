@@ -182,16 +182,27 @@ class PDI_API {
 	 *     @type string $link        Permalink on wordpress.org/photos.
 	 *     @type string $slug        Upstream slug.
 	 *     @type string $author      Uploader display name, if available.
-	 *     @type string $alt         Alt text.
+	 *     @type string $alt         Alt text. Prefers a real alt-text field if the API exposes
+	 *                               one; otherwise reuses the photo's description text, since
+	 *                               that appears to be the closest thing to alt text this API
+	 *                               offers. Empty only if the photo has no description either.
 	 *     @type string $thumbUrl    Best-guess thumbnail URL for grid display.
 	 *     @type array  $sizes       Map of size name => [ url, width, height ].
 	 * }
 	 */
 	public static function normalize_item( $item ) {
 		$id    = isset( $item['id'] ) ? intval( $item['id'] ) : 0;
-		$title = isset( $item['title']['rendered'] ) ? wp_strip_all_tags( $item['title']['rendered'] ) : '';
+		$title = isset( $item['title']['rendered'] ) ? trim( wp_strip_all_tags( $item['title']['rendered'] ) ) : '';
 		$link  = isset( $item['link'] ) ? esc_url_raw( $item['link'] ) : '';
 		$slug  = isset( $item['slug'] ) ? $item['slug'] : '';
+
+		// The upstream Photo Directory substitutes a generic placeholder
+		// title (e.g. "Photo Detail") for photos the uploader never titled.
+		// Treat that the same as an empty title rather than importing it
+		// as a real title for every untitled photo.
+		if ( '' !== $title && in_array( strtolower( $title ), self::generic_title_placeholders(), true ) ) {
+			$title = '';
+		}
 
 		$description = '';
 		if ( ! empty( $item['content']['rendered'] ) ) {
@@ -241,6 +252,27 @@ class PDI_API {
 			);
 		}
 
+		// Alt text fallbacks beyond the embedded featured-media object above.
+		if ( empty( $alt ) && ! empty( $item['alt_text'] ) ) {
+			$alt = $item['alt_text'];
+		}
+		if ( empty( $alt ) && ! empty( $item['meta']['alt_text'] ) ) {
+			$alt = $item['meta']['alt_text'];
+		}
+		if ( empty( $alt ) && ! empty( $item['meta']['_wp_attachment_image_alt'] ) ) {
+			$alt = $item['meta']['_wp_attachment_image_alt'];
+		}
+		$alt = is_string( $alt ) ? trim( wp_strip_all_tags( $alt ) ) : '';
+
+		// The Photo Directory doesn't appear to expose a dedicated alt-text
+		// field at all — the descriptive text uploaders enter comes through
+		// as content/excerpt (already captured above as $description), and
+		// that's the closest thing to real alt text this API offers. Reuse
+		// it rather than leaving alt text empty.
+		if ( empty( $alt ) && ! empty( $description ) ) {
+			$alt = $description;
+		}
+
 		$author = '';
 		if ( ! empty( $item['_embedded']['author'][0]['name'] ) ) {
 			$author = $item['_embedded']['author'][0]['name'];
@@ -258,8 +290,8 @@ class PDI_API {
 			$thumb = $first['url'];
 		}
 
-		if ( empty( $alt ) ) {
-			$alt = $title;
+		if ( '' === $title && $slug ) {
+			$title = self::humanize_slug( $slug );
 		}
 
 		return array(
@@ -273,6 +305,39 @@ class PDI_API {
 			'thumbUrl'    => $thumb,
 			'sizes'       => $sizes,
 		);
+	}
+
+	/**
+	 * Title strings the upstream Photo Directory uses as a generic
+	 * placeholder when a photo has no real title of its own. Matched
+	 * case-insensitively; these are treated the same as an empty title.
+	 *
+	 * @return string[] Lowercased placeholder strings.
+	 */
+	private static function generic_title_placeholders() {
+		/**
+		 * Filters the list of upstream title strings treated as "no real title".
+		 *
+		 * @param string[] $placeholders Lowercased placeholder strings.
+		 */
+		return apply_filters(
+			'pdi_generic_title_placeholders',
+			array( 'photo detail', 'untitled', 'untitled photo' )
+		);
+	}
+
+	/**
+	 * Turns a URL slug into a reasonably readable fallback title, e.g.
+	 * "red-fox-in-snow" becomes "Red fox in snow". Used when the upstream
+	 * photo has no real title (or only a generic placeholder one).
+	 *
+	 * @param string $slug Post slug.
+	 * @return string Humanized text, or an empty string if the slug yields nothing usable.
+	 */
+	private static function humanize_slug( $slug ) {
+		$text = str_replace( array( '-', '_' ), ' ', $slug );
+		$text = trim( preg_replace( '/\s+/', ' ', $text ) );
+		return $text ? ucfirst( $text ) : '';
 	}
 
 	/**
