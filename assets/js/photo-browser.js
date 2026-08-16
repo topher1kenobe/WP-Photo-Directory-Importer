@@ -94,6 +94,16 @@
 		importing: {},
 		error: '',
 		notice: null,
+
+		// Selection is kept as an ordered list of IDs plus the photo objects
+		// themselves, so it survives a filter change that drops those photos
+		// out of the current results.
+		selected: [],
+		selectedPhotos: {},
+		detailsOpen: false,
+		edits: {},
+		importDefaults: { size: 'full', addCredit: true },
+		importJob: null,
 	};
 
 	function reducer( state, action ) {
@@ -153,12 +163,88 @@
 					notice: 'undefined' === typeof action.notice ? state.notice : action.notice,
 				} );
 
+			case 'TOGGLE_SELECT': {
+				var isSelected = -1 !== state.selected.indexOf( action.photo.id );
+				var photos     = Object.assign( {}, state.selectedPhotos );
+
+				if ( isSelected ) {
+					delete photos[ action.photo.id ];
+				} else {
+					photos[ action.photo.id ] = action.photo;
+				}
+
+				return Object.assign( {}, state, {
+					selected: isSelected
+						? state.selected.filter( function ( id ) {
+								return id !== action.photo.id;
+						  } )
+						: state.selected.concat( [ action.photo.id ] ),
+					selectedPhotos: photos,
+				} );
+			}
+
+			case 'CLEAR_SELECTION':
+				return Object.assign( {}, state, {
+					selected: [],
+					selectedPhotos: {},
+					detailsOpen: false,
+					edits: {},
+				} );
+
+			case 'TOGGLE_DETAILS':
+				return Object.assign( {}, state, { detailsOpen: ! state.detailsOpen } );
+
+			case 'SET_EDIT': {
+				var edit = Object.assign( {}, state.edits[ action.id ] );
+				edit[ action.field ] = action.value;
+				var edits = Object.assign( {}, state.edits );
+				edits[ action.id ] = edit;
+				return Object.assign( {}, state, { edits: edits } );
+			}
+
+			case 'SET_DEFAULTS':
+				return Object.assign( {}, state, {
+					importDefaults: Object.assign( {}, state.importDefaults, action.defaults ),
+				} );
+
+			case 'JOB_START':
+				return Object.assign( {}, state, {
+					importJob: { total: action.total, completed: 0, currentFile: '', failed: 0 },
+				} );
+
+			case 'JOB_PROGRESS':
+				return Object.assign( {}, state, {
+					importJob: Object.assign( {}, state.importJob, action.progress ),
+					importedMap: Object.assign( {}, state.importedMap, action.imported || {} ),
+				} );
+
+			case 'JOB_END':
+				return Object.assign( {}, state, {
+					importJob: null,
+					notice: action.notice,
+					// A finished run clears the selection, as the design calls for.
+					// A cancelled one keeps whatever is still unimported.
+					selected: action.keep || [],
+					selectedPhotos: pick( state.selectedPhotos, action.keep || [] ),
+					edits: pick( state.edits, action.keep || [] ),
+					detailsOpen: action.keep && action.keep.length ? state.detailsOpen : false,
+				} );
+
 			case 'NOTICE':
 				return Object.assign( {}, state, { notice: action.notice } );
 
 			default:
 				return state;
 		}
+	}
+
+	function pick( source, keys ) {
+		return keys.reduce( function ( carry, key ) {
+			if ( 'undefined' !== typeof source[ key ] ) {
+				carry[ key ] = source[ key ];
+			}
+			return carry;
+		}, {} );
 	}
 
 	function mapOf( keys, value ) {
@@ -438,13 +524,34 @@
 
 		return h(
 			'div',
-			{ className: 'pdi-card' },
+			{
+				className: 'pdi-card' + ( props.selected ? ' is-selected' : '' ),
+				onClick: function () {
+					props.onToggle( photo );
+				},
+			},
 			h(
 				'div',
 				{ className: 'pdi-card__thumb' },
 				photo.thumbUrl
 					? h( 'img', { src: photo.thumbUrl, alt: photo.alt || photo.title, loading: 'lazy' } )
 					: null,
+				// The selection control is a real checkbox rather than the card
+				// itself, so keyboard and screen-reader users get one labelled,
+				// stateful control per photo instead of a second tab stop that
+				// duplicates it.
+				h( 'input', {
+					type: 'checkbox',
+					className: 'pdi-card__check',
+					checked: !! props.selected,
+					'aria-label': format( strings.selectPhoto, [ photo.title ] ),
+					onClick: function ( event ) {
+						event.stopPropagation();
+					},
+					onChange: function () {
+						props.onToggle( photo );
+					},
+				} ),
 				attachmentId ? h( 'span', { className: 'pdi-card__badge' }, strings.inLibrary ) : null
 			),
 			h(
@@ -455,7 +562,13 @@
 				attachmentId
 					? h(
 							'a',
-							{ className: 'pdi-card__link', href: props.libraryUrl },
+							{
+								className: 'pdi-card__link',
+								href: props.libraryUrl,
+								onClick: function ( event ) {
+									event.stopPropagation();
+								},
+							},
 							strings.viewInLibrary
 					  )
 					: h(
@@ -472,6 +585,178 @@
 							props.importing ? strings.importing : strings.import
 					  )
 			)
+		);
+	}
+
+	// ---------------------------------------------------------- 1.7 the tray
+
+	function DetailsPanel( props ) {
+		return h(
+			'div',
+			{ className: 'pdi-tray__details' },
+			props.photos.map( function ( photo ) {
+				var edit = props.edits[ photo.id ] || {};
+
+				function field( name, label, placeholder, fallback ) {
+					return h( 'input', {
+						type: 'text',
+						className: 'pdi-tray__input',
+						'aria-label': label + ': ' + photo.title,
+						placeholder: placeholder || label,
+						value: 'undefined' !== typeof edit[ name ] ? edit[ name ] : fallback || '',
+						onChange: function ( event ) {
+							props.onEdit( photo.id, name, event.target.value );
+						},
+					} );
+				}
+
+				return h(
+					'div',
+					{ key: photo.id, className: 'pdi-tray__row' },
+					h( 'img', { className: 'pdi-tray__rowthumb', src: photo.thumbUrl, alt: '' } ),
+					field( 'title', strings.fieldTitle, strings.fieldTitle, photo.title ),
+					field( 'alt', strings.fieldAlt, strings.fieldAltPlaceholder, photo.alt ),
+					field( 'caption', strings.fieldCaption, strings.fieldCaption, '' )
+				);
+			} )
+		);
+	}
+
+	function ImportProgress( props ) {
+		var job     = props.job;
+		var percent = job.total ? Math.round( ( job.completed / job.total ) * 100 ) : 0;
+
+		return h(
+			'div',
+			{ className: 'pdi-tray__progress' },
+			h(
+				'div',
+				{ className: 'pdi-tray__progressrow' },
+				h(
+					'span',
+					{ className: 'pdi-tray__progresstext', role: 'status' },
+					format( strings.importProgress, [
+						Math.min( job.completed + 1, job.total ),
+						job.total,
+						job.currentFile,
+					] )
+				),
+				h(
+					'button',
+					{ type: 'button', className: 'pdi-tray__cancel', onClick: props.onCancel },
+					strings.cancel
+				)
+			),
+			h(
+				'div',
+				{ className: 'pdi-tray__track' },
+				h( 'div', { className: 'pdi-tray__fill', style: { width: percent + '%' } } )
+			)
+		);
+	}
+
+	function SelectionTray( props ) {
+		var photos  = props.photos;
+		var running = !! props.job;
+
+		return h(
+			'div',
+			{ className: 'pdi-tray', role: 'region', 'aria-label': strings.trayLabel },
+			h(
+				'div',
+				{ className: 'pdi-tray__main' },
+				h(
+					'div',
+					{ className: 'pdi-tray__selection' },
+					h( 'span', { className: 'pdi-tray__count' }, format( strings.selectedCount, [ photos.length ] ) ),
+					h(
+						'div',
+						{ className: 'pdi-tray__thumbs' },
+						photos.map( function ( photo ) {
+							return h(
+								'span',
+								{ key: photo.id, className: 'pdi-tray__thumb' },
+								h( 'img', { src: photo.thumbUrl, alt: '' } ),
+								h(
+									'button',
+									{
+										type: 'button',
+										className: 'pdi-tray__remove',
+										'aria-label': format( strings.deselectPhoto, [ photo.title ] ),
+										disabled: running,
+										onClick: function () {
+											props.onToggle( photo );
+										},
+									},
+									'×'
+								)
+							);
+						} )
+					)
+				),
+				h(
+					'div',
+					{ className: 'pdi-tray__controls' },
+					h(
+						'label',
+						{ className: 'pdi-tray__field' },
+						h( 'span', { className: 'pdi-tray__label' }, strings.importSize ),
+						h(
+							'select',
+							{
+								className: 'pdi-select',
+								value: props.defaults.size,
+								disabled: running,
+								onChange: function ( event ) {
+									props.onDefaults( { size: event.target.value } );
+								},
+							},
+							( settings.sizes || [] ).map( function ( size ) {
+								return h( 'option', { key: size.value, value: size.value }, size.label );
+							} )
+						)
+					),
+					h(
+						'label',
+						{ className: 'pdi-tray__checkbox' },
+						h( 'input', {
+							type: 'checkbox',
+							checked: props.defaults.addCredit,
+							disabled: running,
+							onChange: function ( event ) {
+								props.onDefaults( { addCredit: event.target.checked } );
+							},
+						} ),
+						strings.addCredit
+					),
+					h(
+						'button',
+						{
+							type: 'button',
+							className: 'pdi-tray__toggle',
+							disabled: running,
+							onClick: props.onToggleDetails,
+						},
+						props.detailsOpen ? strings.hideDetails : strings.editDetails
+					),
+					h(
+						'button',
+						{
+							type: 'button',
+							className: 'button button-primary pdi-tray__import',
+							disabled: running,
+							onClick: props.onImport,
+						},
+						1 === photos.length
+							? strings.importOne
+							: format( strings.importCount, [ photos.length ] )
+					)
+				)
+			),
+			props.detailsOpen && ! running
+				? h( DetailsPanel, { photos: photos, edits: props.edits, onEdit: props.onEdit } )
+				: null,
+			running ? h( ImportProgress, { job: props.job, onCancel: props.onCancel } ) : null
 		);
 	}
 
@@ -493,6 +778,7 @@
 		// Guards against a slow earlier request landing after a newer one and
 		// overwriting fresher results, which debounced typing makes likely.
 		var requestId = useRef( 0 );
+		var cancelled = useRef( false );
 
 		useEffect( function () {
 			ajax( 'pdi_terms' ).then( function ( response ) {
@@ -594,6 +880,116 @@
 						notice: { type: 'error', title: strings.importFailed, message: strings.error },
 					} );
 				} );
+		}
+
+		// Imports run one request at a time so a large selection can't open
+		// twenty simultaneous downloads. Cancelling stops the queue before the
+		// next photo starts; anything already imported stays imported.
+		function runImport() {
+			var photos = state.selected
+				.map( function ( id ) {
+					return state.selectedPhotos[ id ];
+				} )
+				.filter( Boolean );
+
+			if ( ! photos.length ) {
+				return;
+			}
+
+			var edits    = state.edits;
+			var defaults = state.importDefaults;
+			var imported = {};
+			var failed   = [];
+			var index    = 0;
+
+			cancelled.current = false;
+			dispatch( { type: 'JOB_START', total: photos.length } );
+
+			function finish() {
+				var succeeded = Object.keys( imported ).length;
+				var pending   = cancelled.current
+					? photos.slice( index ).map( function ( photo ) {
+							return photo.id;
+					  } )
+					: [];
+				var keep = failed
+					.map( function ( photo ) {
+						return photo.id;
+					} )
+					.concat( pending );
+
+				var notice;
+				if ( succeeded && ! failed.length ) {
+					notice = {
+						type: 'success',
+						title:
+							1 === succeeded
+								? strings.importedOne
+								: format( strings.importedCount, [ succeeded ] ),
+						message: strings.importedBody,
+						actionLabel: strings.viewInMediaLibrary,
+						actionUrl: settings.libraryUrl,
+					};
+				} else if ( succeeded ) {
+					notice = {
+						type: 'error',
+						title: format( strings.importedPartial, [ succeeded, failed.length ] ),
+						message: strings.importedPartialBody,
+					};
+				} else {
+					notice = { type: 'error', title: strings.importFailed, message: strings.error };
+				}
+
+				dispatch( {
+					type: 'JOB_END',
+					keep: keep.filter( function ( id, position ) {
+						return keep.indexOf( id ) === position;
+					} ),
+					notice: notice,
+				} );
+			}
+
+			function next() {
+				if ( cancelled.current || index >= photos.length ) {
+					finish();
+					return;
+				}
+
+				var photo = photos[ index ];
+				var edit  = edits[ photo.id ] || {};
+
+				dispatch( { type: 'JOB_PROGRESS', progress: { completed: index, currentFile: photo.title } } );
+
+				ajax( 'pdi_import', {
+					photo_id: photo.id,
+					size: defaults.size,
+					add_credit: defaults.addCredit ? '1' : '0',
+					title: 'undefined' !== typeof edit.title ? edit.title : photo.title,
+					alt: 'undefined' !== typeof edit.alt ? edit.alt : photo.alt,
+					caption: 'undefined' !== typeof edit.caption ? edit.caption : null,
+				} )
+					.then( function ( response ) {
+						if ( response && response.success ) {
+							imported[ photo.id ] = response.data.id;
+						} else {
+							failed.push( photo );
+						}
+					} )
+					.catch( function () {
+						failed.push( photo );
+					} )
+					.then( function () {
+						index++;
+						dispatch( {
+							type: 'JOB_PROGRESS',
+							progress: { completed: index },
+							imported: imported,
+						} );
+						next();
+					} );
+			}
+
+			next();
 		}
 
 		function submitSearch() {
@@ -720,7 +1116,27 @@
 						'h2',
 						null,
 						state.query ? format( strings.resultsFor, [ state.query ] ) : strings.recentlyAdded
-					)
+					),
+					h(
+						'span',
+						{ className: 'pdi-results__hint' },
+						state.selected.length
+							? format( strings.hintSelected, [ state.selected.length ] )
+							: strings.hintSelect
+					),
+					state.selected.length
+						? h(
+								'button',
+								{
+									type: 'button',
+									className: 'pdi-results__clear',
+									onClick: function () {
+										dispatch( { type: 'CLEAR_SELECTION' } );
+									},
+								},
+								strings.clearSelection
+						  )
+						: null
 				),
 				isLoading ? h( Skeletons ) : null,
 				! isLoading && 'empty' === state.status
@@ -745,7 +1161,11 @@
 									attachmentId: attachmentId,
 									libraryUrl: attachmentId ? settings.libraryUrl + '?item=' + attachmentId : '',
 									importing: !! state.importing[ photo.id ],
+									selected: -1 !== state.selected.indexOf( photo.id ),
 									onImport: importPhoto,
+									onToggle: function ( selectedPhoto ) {
+										dispatch( { type: 'TOGGLE_SELECT', photo: selectedPhoto } );
+									},
 								} );
 							} )
 					  )
@@ -776,7 +1196,34 @@
 							)
 					  )
 					: null
-			)
+			),
+			state.selected.length
+				? h( SelectionTray, {
+						photos: state.selected.map( function ( id ) {
+							return state.selectedPhotos[ id ];
+						} ),
+						defaults: state.importDefaults,
+						detailsOpen: state.detailsOpen,
+						edits: state.edits,
+						job: state.importJob,
+						onToggle: function ( photo ) {
+							dispatch( { type: 'TOGGLE_SELECT', photo: photo } );
+						},
+						onDefaults: function ( defaults ) {
+							dispatch( { type: 'SET_DEFAULTS', defaults: defaults } );
+						},
+						onToggleDetails: function () {
+							dispatch( { type: 'TOGGLE_DETAILS' } );
+						},
+						onEdit: function ( id, field, value ) {
+							dispatch( { type: 'SET_EDIT', id: id, field: field, value: value } );
+						},
+						onImport: runImport,
+						onCancel: function () {
+							cancelled.current = true;
+						},
+				  } )
+				: null
 		);
 	}
 

@@ -133,6 +133,20 @@ class PDI_Plugin {
 			'libraryUrl'  => admin_url( 'upload.php' ),
 			'settingsUrl' => esc_url_raw( $settings_url ),
 			'perPage'     => 20,
+			'sizes'       => array(
+				array(
+					'value' => 'full',
+					'label' => __( 'Full size (up to 2560px)', 'pdi' ),
+				),
+				array(
+					'value' => 'large',
+					'label' => __( 'Large (1024px)', 'pdi' ),
+				),
+				array(
+					'value' => 'medium',
+					'label' => __( 'Medium (600px)', 'pdi' ),
+				),
+			),
 			'strings'     => array(
 				'title'               => __( 'Photo Directory', 'pdi' ),
 				'description'         => __( 'Free, CC0-licensed photos contributed to WordPress.org. Import any photo straight into your Media Library. No attribution required, credit optional.', 'pdi' ),
@@ -169,6 +183,38 @@ class PDI_Plugin {
 				'loading'             => __( 'Loading…', 'pdi' ),
 				/* translators: 1: number of photos shown so far, 2: total number available */
 				'showingCount'        => __( 'Showing %1$s of %2$s', 'pdi' ),
+
+				'trayLabel'           => __( 'Selected photos', 'pdi' ),
+				/* translators: %s: photo title */
+				'selectPhoto'         => __( 'Select %s', 'pdi' ),
+				/* translators: %s: photo title */
+				'deselectPhoto'       => __( 'Deselect %s', 'pdi' ),
+				/* translators: %s: number of photos selected */
+				'selectedCount'       => __( '%s selected', 'pdi' ),
+				'clearSelection'      => __( 'Clear selection', 'pdi' ),
+				'hintSelect'          => __( 'Click a photo to select it, or import one on its own', 'pdi' ),
+				/* translators: %s: number of photos selected */
+				'hintSelected'        => __( '%s selected. Click a photo to add or remove it.', 'pdi' ),
+				'importSize'          => __( 'Import size', 'pdi' ),
+				'addCredit'           => __( 'Add photographer credit to caption', 'pdi' ),
+				'editDetails'         => __( 'Edit alt text & captions', 'pdi' ),
+				'hideDetails'         => __( 'Hide details', 'pdi' ),
+				'importOne'           => __( 'Import 1 photo', 'pdi' ),
+				/* translators: %s: number of photos to import */
+				'importCount'         => __( 'Import %s photos', 'pdi' ),
+				'fieldTitle'          => __( 'Title', 'pdi' ),
+				'fieldAlt'            => __( 'Alt text', 'pdi' ),
+				'fieldAltPlaceholder' => __( 'describe the photo', 'pdi' ),
+				'fieldCaption'        => __( 'Caption', 'pdi' ),
+				/* translators: 1: current photo number, 2: total photos, 3: photo title */
+				'importProgress'      => __( 'Importing %1$s of %2$s: %3$s', 'pdi' ),
+				'cancel'              => __( 'Cancel', 'pdi' ),
+				'viewInMediaLibrary'  => __( 'View in Media Library', 'pdi' ),
+				'importedOne'         => __( '1 photo imported.', 'pdi' ),
+				'importedBody'        => __( 'Alt text and captions were saved with each file.', 'pdi' ),
+				/* translators: 1: number imported, 2: number that failed */
+				'importedPartial'     => __( '%1$s imported, %2$s could not be imported.', 'pdi' ),
+				'importedPartialBody' => __( 'The photos that failed are still selected, so you can try them again.', 'pdi' ),
 
 				/* translators: %s: number of photos imported */
 				'importedCount'       => __( '%s photos imported.', 'pdi' ),
