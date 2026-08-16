@@ -21,8 +21,10 @@ Three entry points are added to wp-admin:
 
 - **Media → Photo Directory** — a dedicated search/browse page.
 - **A "Photo Directory" button** next to *Add Media* in the classic editor.
-- **A "Photo Directory" panel** in the block editor sidebar, with a
-  one-click *Use as featured image* action right after import.
+- **A "Photo Directory" tab** inside the native WordPress media picker
+  itself (Set Featured Image, Add Media, an Image block's Media Library
+  button, etc.) — this works in both the classic and block editor, since
+  they share the same underlying picker under the hood.
 
 ## Installation
 
@@ -40,12 +42,25 @@ Directory API is public.
 | `wp-photo-directory-importer.php` | Plugin bootstrap: defines constants, loads the include files. |
 | `includes/class-pdi-plugin.php` | Hook registration, asset registration, admin page, media button. |
 | `includes/class-pdi-api.php` | Talks to the upstream Photo Directory REST API and normalizes its response (search + single-photo lookup, transient caching). |
-| `includes/class-pdi-importer.php` | Downloads a chosen photo and sideloads it into the local Media Library via `media_handle_sideload()`, with de-duplication. |
-| `assets/js/admin.js` | The search/grid picker UI. Renders inline on the admin page, or inside a modal when opened from the classic or block editor. |
-| `assets/js/block-editor.js` | Registers the Photo Directory panel in the block editor sidebar and wires "Use as featured image" to `editPost()`. |
+| `includes/class-pdi-importer.php` | Downloads a chosen photo and sideloads it into the local Media Library via `media_handle_sideload()`, with de-duplication and caption/credit handling. |
+| `assets/js/admin.js` | The search/grid picker UI. Renders inline on the admin page, or inside a modal when opened from the classic editor button. |
+| `assets/js/media-modal.js` | Adds the "Photo Directory" tab to the native `wp.media` frame (Set Featured Image, Add Media, etc.) and hands imported photos to that frame's own selection/toolbar. |
 
-Every imported attachment gets three pieces of meta so you can trace it
-back to its source:
+Every imported attachment gets:
+
+- **Title** — the upstream photo's own title, used as-is — *unless* it's a
+  known generic placeholder (currently "Photo Detail", "Untitled",
+  "Untitled Photo" — filterable via `pdi_generic_title_placeholders`), in
+  which case a fallback title is derived from the photo's slug instead
+  (e.g. `red-fox-in-snow` → "Red fox in snow"), falling back further to
+  "Untitled photo" if the slug isn't usable either.
+- **Alt text** — prefers a real alt-text field if the upstream API exposes
+  one, otherwise reuses the photo's description (the closest thing to alt
+  text the Photo Directory API appears to offer). Never derived from the
+  title.
+- **Caption** (`post_excerpt`) — the photo's description, with a
+  "Photo by {name}" credit line appended when the API exposes an author.
+- Three meta fields so you can trace it back to its source:
 
 | Meta key | Value |
 |---|---|
@@ -54,8 +69,8 @@ back to its source:
 | `_pdi_source_author` | The uploader's display name, when the API exposes it. |
 
 All Photo Directory photos are released under **CC0** — no attribution is
-legally required, but this metadata makes it easy to credit uploaders if
-you'd like to.
+legally required, but the caption credit and meta above make it easy to
+credit uploaders anyway.
 
 ## A note on the upstream API
 

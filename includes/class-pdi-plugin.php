@@ -59,14 +59,6 @@ class PDI_Plugin {
 		wp_register_script( 'pdi-admin', PDI_PLUGIN_URL . 'assets/js/admin.js', array(), PDI_VERSION, true );
 
 		wp_register_script(
-			'pdi-block-editor',
-			PDI_PLUGIN_URL . 'assets/js/block-editor.js',
-			array( 'wp-plugins', 'wp-edit-post', 'wp-element', 'wp-components', 'wp-data', 'wp-i18n', 'pdi-admin' ),
-			PDI_VERSION,
-			true
-		);
-
-		wp_register_script(
 			'pdi-media-modal',
 			PDI_PLUGIN_URL . 'assets/js/media-modal.js',
 			array( 'pdi-admin', 'media-views' ),
@@ -131,9 +123,8 @@ class PDI_Plugin {
 
 	/**
 	 * Load the picker UI on post edit screens (both classic and block editor
-	 * land on post.php/post-new.php) so the "Photo Directory" button, the
-	 * Gutenberg sidebar panel, and the native media modal tab all have their
-	 * script available.
+	 * land on post.php/post-new.php) so the "Photo Directory" button and the
+	 * native media modal tab have their script available.
 	 *
 	 * @param string $hook The current admin page hook suffix.
 	 */
@@ -147,9 +138,9 @@ class PDI_Plugin {
 	}
 
 	/**
-	 * Enqueues the block editor sidebar panel script/style, plus the native
-	 * media modal tab (the block editor's Featured Image / Image block
-	 * pickers use the same underlying wp.media frame as the classic editor).
+	 * Enqueues the native media modal tab in the block editor (its Featured
+	 * Image / Image block pickers use the same underlying wp.media frame as
+	 * the classic editor).
 	 */
 	public function enqueue_block_editor_assets() {
 		if ( ! current_user_can( 'upload_files' ) ) {
@@ -157,7 +148,6 @@ class PDI_Plugin {
 		}
 		wp_enqueue_style( 'pdi-admin' );
 		wp_enqueue_script( 'pdi-admin' );
-		wp_enqueue_script( 'pdi-block-editor' );
 		wp_enqueue_media();
 		wp_enqueue_script( 'pdi-media-modal' );
 	}
