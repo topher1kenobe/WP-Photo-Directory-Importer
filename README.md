@@ -53,14 +53,16 @@ Every imported attachment gets:
   "Untitled Photo" — filterable via `pdi_generic_title_placeholders`), in
   which case a fallback title is derived from the photo's slug instead
   (e.g. `red-fox-in-snow` → "Red fox in snow"), falling back further to
-  "Untitled photo" if the slug isn't usable either.
+  "Untitled photo" if the slug isn't usable either. Not shown in the
+  search/browse picker grid, since a lot of these fallback titles aren't
+  meaningful to look at while browsing — the title is still set on the
+  imported attachment itself.
 - **Alt text** — prefers a real alt-text field if the upstream API exposes
   one, otherwise falls back to the photo's excerpt specifically (not the
   longer content/description). Never derived from the title.
-- **Caption** (`post_excerpt`) — *only* the "Photo by {name}" credit line,
-  when the API exposes an author name; empty otherwise. The photo's full
-  description lives in the Description field (`post_content`) instead,
-  not duplicated here.
+- **Caption** (`post_excerpt`) — the photo's full description text.
+- **Description** (`post_content`) — *only* the "Photo by {name}" credit
+  line, when the API exposes an author name; empty otherwise.
 - Three meta fields so you can trace it back to its source:
 
 | Meta key | Value |
@@ -106,6 +108,10 @@ vendor/bin/phpcs
 - Bulk import.
 
 Pull requests welcome.
+
+## Authors
+
+ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe
 
 ## License
 

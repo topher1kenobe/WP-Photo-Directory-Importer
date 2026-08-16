@@ -1,10 +1,10 @@
 === WP Photo Directory Importer ===
-Contributors: topher
+Contributors: ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe
 Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,11 +49,14 @@ Entry points:
   and a fallback title is derived from the photo's slug instead (e.g.
   `red-fox-in-snow` → "Red fox in snow"). If the slug itself isn't usable,
   the title falls back to "Untitled photo".
-* The attachment's Description field (post_content) gets the photo's full
-  description text; its Caption field (post_excerpt) gets *only* the
+* The attachment's Caption field (post_excerpt) gets the photo's full
+  description text; its Description field (post_content) gets *only* the
   photographer credit line (e.g. "Photo by Jane Smith, via the WordPress
-  Photo Directory."), or is left empty if no author name is available —
-  the description text is deliberately not duplicated into the caption.
+  Photo Directory."), or is left empty if no author name is available.
+* The search/browse picker UI doesn't display each photo's title — many
+  photos on the Photo Directory only have a slug-derived fallback title
+  (see above), which isn't meaningful to show while browsing. The title is
+  still set on the imported attachment; it's just not shown in the grid.
 * The attachment caption (post_excerpt) is the photo's description with a
   "Photo by {name}" credit line appended, when the API exposes an author
   name.
@@ -68,6 +71,14 @@ Entry points:
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.1 =
+* Swapped the Caption/Description field mapping: Caption (post_excerpt)
+  now gets the photo's full description text, and Description
+  (post_content) gets only the photographer credit line.
+* Removed the (often meaningless, slug-derived) title text from the
+  search/browse picker grid. The title is still set on import; it's just
+  no longer shown while browsing.
 
 = 1.3.0 =
 * Alt text now falls back to the photo's excerpt specifically, rather than

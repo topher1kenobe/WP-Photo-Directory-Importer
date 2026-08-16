@@ -129,8 +129,8 @@ class PDI_Importer {
 
 		$post_data = array(
 			'post_title'   => $photo['title'],
-			'post_content' => $photo['description'],
-			'post_excerpt' => self::build_caption( $photo ),
+			'post_content' => self::build_credit_line( $photo ),
+			'post_excerpt' => $photo['description'],
 		);
 
 		$attachment_id = media_handle_sideload( $file_array, 0, $photo['title'], $post_data );
@@ -157,15 +157,15 @@ class PDI_Importer {
 	}
 
 	/**
-	 * Builds the attachment caption (post_excerpt): just the photographer
-	 * credit line, when the upstream API exposes an author name. The
-	 * photo's description text lives in post_content instead (the
-	 * "Description" field), not here.
+	 * Builds the photographer credit line, when the upstream API exposes
+	 * an author name. Used as the attachment's Description field
+	 * (post_content); the photo's own description text goes in the
+	 * Caption field (post_excerpt) instead.
 	 *
 	 * @param array $photo Normalized photo data.
-	 * @return string Caption text, or an empty string if no author is available.
+	 * @return string Credit line, or an empty string if no author is available.
 	 */
-	private static function build_caption( $photo ) {
+	private static function build_credit_line( $photo ) {
 		if ( empty( $photo['author'] ) ) {
 			return '';
 		}
