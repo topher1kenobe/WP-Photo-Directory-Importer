@@ -1,4 +1,10 @@
 <?php
+/**
+ * Photo Directory REST API client.
+ *
+ * @package WP_Photo_Directory_Importer
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -19,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class PDI_API {
 
 	const REMOTE_BASE = 'https://wordpress.org/photos/wp-json/wp/v2/photos';
-	const CACHE_TTL    = 300; // 5 minutes.
+	const CACHE_TTL   = 300; // 5 minutes.
 
 	/**
 	 * AJAX handler for `action=pdi_search`. Expects `search` and `page`
@@ -124,6 +130,9 @@ class PDI_API {
 	/**
 	 * Fetch a single photo directly (used at import time so we always
 	 * import against fresh, complete data rather than a cached search hit).
+	 *
+	 * @param int $id Upstream Photo Directory ID.
+	 * @return array|WP_Error Normalized photo data, see normalize_item().
 	 */
 	public static function get_photo( $id ) {
 		$id = absint( $id );
@@ -163,8 +172,20 @@ class PDI_API {
 	}
 
 	/**
-	 * Normalize one photo-directory item into:
-	 * [ id, title, description, link, slug, author, alt, thumbUrl, sizes[name] => [url,width,height] ]
+	 * Normalize one raw Photo Directory API item into a predictable shape.
+	 *
+	 * @param array $item Raw item from the upstream `/wp/v2/photos` response.
+	 * @return array {
+	 *     @type int    $id          Upstream photo ID.
+	 *     @type string $title       Plain-text title.
+	 *     @type string $description Plain-text description/caption.
+	 *     @type string $link        Permalink on wordpress.org/photos.
+	 *     @type string $slug        Upstream slug.
+	 *     @type string $author      Uploader display name, if available.
+	 *     @type string $alt         Alt text.
+	 *     @type string $thumbUrl    Best-guess thumbnail URL for grid display.
+	 *     @type array  $sizes       Map of size name => [ url, width, height ].
+	 * }
 	 */
 	public static function normalize_item( $item ) {
 		$id    = isset( $item['id'] ) ? intval( $item['id'] ) : 0;
@@ -254,6 +275,13 @@ class PDI_API {
 		);
 	}
 
+	/**
+	 * Extracts a name => [ url, width, height ] map from a raw sizes array,
+	 * accepting either `source_url` (core /wp/v2/media shape) or `url` keys.
+	 *
+	 * @param array $raw_sizes Raw sizes array from the upstream API.
+	 * @return array Map of size name => [ url, width, height ].
+	 */
 	private static function extract_sizes( $raw_sizes ) {
 		$out = array();
 		foreach ( $raw_sizes as $name => $data ) {

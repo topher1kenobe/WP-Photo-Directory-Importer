@@ -1,4 +1,10 @@
 <?php
+/**
+ * Handles downloading and sideloading photos into the Media Library.
+ *
+ * @package WP_Photo_Directory_Importer
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -58,6 +64,15 @@ class PDI_Importer {
 	}
 
 	/**
+	 * Look up a local attachment previously imported from a given upstream photo.
+	 *
+	 * Queries on meta_key/meta_value, which phpcs flags as a potentially slow
+	 * query since postmeta isn't indexed on those columns by default. There's
+	 * no core-supported alternative for this lookup shape (a custom mapping
+	 * table would be overkill for what is, at most, a few thousand rows per
+	 * site), so the warning is intentionally suppressed here rather than
+	 * "fixed" by switching to a less accurate lookup.
+	 *
 	 * @param int $photo_id Upstream Photo Directory ID.
 	 * @return int Local attachment ID, or 0 if this photo hasn't been imported yet.
 	 */
@@ -68,6 +83,7 @@ class PDI_Importer {
 				'post_status' => 'inherit',
 				'numberposts' => 1,
 				'fields'      => 'ids',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- exact-match lookup on a plugin-owned meta key, no indexed alternative available.
 				'meta_key'    => self::META_SOURCE_ID,
 				'meta_value'  => $photo_id,
 			)
@@ -76,6 +92,9 @@ class PDI_Importer {
 	}
 
 	/**
+	 * Downloads the chosen size of a normalized photo and sideloads it into
+	 * the Media Library.
+	 *
 	 * @param array  $photo Normalized photo data from PDI_API::normalize_item().
 	 * @param string $size  Preferred size key; falls back to 'full', then the largest available.
 	 * @return int|WP_Error Attachment ID on success.
@@ -137,6 +156,12 @@ class PDI_Importer {
 		return $attachment_id;
 	}
 
+	/**
+	 * Picks the size with the largest pixel area from a photo's size map.
+	 *
+	 * @param array $sizes Map of size name => [ url, width, height ].
+	 * @return array The largest size entry, e.g. [ url, width, height ].
+	 */
 	private static function largest_size( $sizes ) {
 		$best = null;
 		foreach ( $sizes as $s ) {
@@ -149,6 +174,14 @@ class PDI_Importer {
 		return $best ? $best : reset( $sizes );
 	}
 
+	/**
+	 * Derives a sensible local filename for a downloaded photo, falling back
+	 * to the photo's slug/ID if the source URL has no usable basename.
+	 *
+	 * @param string $url   Source image URL.
+	 * @param array  $photo Normalized photo data.
+	 * @return string Sanitized filename.
+	 */
 	private static function guess_filename( $url, $photo ) {
 		$path = wp_parse_url( $url, PHP_URL_PATH );
 		$base = $path ? basename( $path ) : '';
@@ -159,6 +192,17 @@ class PDI_Importer {
 		return sanitize_file_name( $base );
 	}
 
+	/**
+	 * Builds the small JSON-friendly attachment payload sent back to the browser.
+	 *
+	 * @param int $attachment_id Local attachment ID.
+	 * @return array {
+	 *     @type int    $id       Attachment ID.
+	 *     @type string $title    Attachment title.
+	 *     @type string $thumbUrl Medium-size (or original) image URL.
+	 *     @type string $editUrl  Admin edit-attachment URL.
+	 * }
+	 */
 	private static function attachment_response( $attachment_id ) {
 		$image = wp_get_attachment_image_src( $attachment_id, 'medium' );
 		return array(
