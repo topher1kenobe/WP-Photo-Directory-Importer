@@ -12,7 +12,7 @@
 	<arg name="colors"/>
 	<arg name="extensions" value="php"/>
 
-	<!-- Requires: composer require --dev wp-coding-standards/wpcs -->
+	<!-- Requires wp-coding-standards/wpcs as a dev dependency. -->
 	<rule ref="WordPress">
 		<!-- Short array syntax and yoda conditions follow core defaults. -->
 	</rule>
