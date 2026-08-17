@@ -498,11 +498,11 @@ class PDI_API {
 		$alt = is_string( $alt ) ? trim( wp_strip_all_tags( $alt ) ) : '';
 
 		// The Photo Directory doesn't appear to expose a dedicated alt-text
-		// field at all. Fall back to the same description text used for
-		// the attachment's Description field, since that's the only
-		// reliably-populated text this API offers.
+		// field at all. Fall back to a concise version of the description —
+		// the only reliably-populated text this API offers — rather than the
+		// whole thing, which makes for long, redundant alt text.
 		if ( empty( $alt ) && ! empty( $description ) ) {
-			$alt = $description;
+			$alt = self::alt_from_description( $description );
 		}
 
 		$author = '';
@@ -632,6 +632,55 @@ class PDI_API {
 		}
 
 		return ucfirst( $text );
+	}
+
+	/**
+	 * Derives concise alt text from a photo's description.
+	 *
+	 * The Photo Directory exposes no dedicated alt-text field, so the
+	 * description is the only text available — but the full description makes
+	 * poor alt text: a screen reader announces the whole paragraph, and it
+	 * duplicates the Description field verbatim. Prefer the first sentence
+	 * when it stands alone, otherwise hard-cap on a word boundary with no
+	 * trailing ellipsis (which reads oddly aloud). Editors can still override
+	 * alt text in the import UI before importing.
+	 *
+	 * @param string $description Plain-text description.
+	 * @return string Concise alt text, or an empty string if nothing usable remains.
+	 */
+	private static function alt_from_description( $description ) {
+		$text = trim( preg_replace( '/\s+/', ' ', (string) $description ) );
+		if ( '' === $text ) {
+			return '';
+		}
+
+		/**
+		 * Filters the maximum length of description-derived alt text.
+		 *
+		 * @param int $length Maximum alt-text length in characters. Default 125.
+		 */
+		$max = (int) apply_filters( 'pdi_alt_max_length', 125 );
+
+		if ( preg_match( '/^(.+?[.!?])(?:\s|$)/u', $text, $m ) && mb_strlen( $m[1] ) <= $max ) {
+			// A first sentence that already fits makes the cleanest caption.
+			$text = $m[1];
+		} elseif ( mb_strlen( $text ) > $max ) {
+			// Otherwise trim to the last whole word inside the cap.
+			$clipped = mb_substr( $text, 0, $max );
+			$space   = mb_strrpos( $clipped, ' ' );
+			if ( false !== $space && $space > 0 ) {
+				$clipped = mb_substr( $clipped, 0, $space );
+			}
+			$text = rtrim( $clipped, " \t\n\r\0\x0B.,;:-" );
+		}
+
+		/**
+		 * Filters the alt text derived from a photo's description.
+		 *
+		 * @param string $alt         Derived alt text.
+		 * @param string $description Full plain-text description.
+		 */
+		return apply_filters( 'pdi_alt_from_description', $text, $description );
 	}
 
 	/**
