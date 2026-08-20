@@ -1,10 +1,10 @@
 === WP Photo Directory Importer ===
-Contributors: ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci
+Contributors: ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci, michelleames
 Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,35 @@ Entry points:
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.4 =
+* Rebuilt **Media > Photo Directory** as a filterable browse screen
+  (`assets/js/photo-browser.js`, React via `wp-element`): category,
+  orientation, and color filters populated live from the Photo
+  Directory's own taxonomies; sort by relevance or newest; multi-select
+  with a bulk-import tray; per-photo title/alt/caption edits and a
+  photographer-credit toggle before import.
+* Rebuilt the "Photo Directory" tab inside the native media picker as a
+  two-pane picker (thumbnail grid + detail sidebar) with the same
+  filters, matching the browse screen.
+* Photos already in the Media Library are now flagged in bulk for a
+  whole result page at once (`PDI_Importer::find_existing_attachments()`)
+  instead of one lookup per card.
+* `_embed` now requests only the two relations the plugin reads
+  (`author,wp:featuredmedia`) instead of every relation the API would
+  otherwise expand, avoiding an unnecessary `wp:term` expansion per
+  taxonomy per photo.
+* Title fallback now prefers a short title derived from the photo's own
+  description over a humanized slug, since most Photo Directory slugs are
+  opaque hex strings (e.g. `6836a813f7`) with no human meaning to
+  humanize in the first place.
+* Normalized photo data now includes width, height, MIME type, and file
+  size, and the computed credit line is available directly on the photo
+  object for the new UI to prefill.
+* Added Michelle Frechette as a contributor.
+* Removed the bundled `LICENSE` file in favor of linking the license
+  online.
+* Fixed the search field's icon overlapping its placeholder text.
 
 = 1.3.3 =
 * Sanitize untrusted fields from the Photo Directory API before use: the

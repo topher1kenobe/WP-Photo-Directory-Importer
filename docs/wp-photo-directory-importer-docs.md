@@ -1,6 +1,6 @@
 # WP Photo Directory Importer — Documentation
 
-Version 1.3.3 · Last reviewed 2026-08-16
+Version 1.3.4 · Last reviewed 2026-08-16
 
 This file contains three documents:
 
@@ -173,7 +173,7 @@ After testing, any unwanted photos can be removed from **Media > Library** the s
 
 # Troubleshooting Guide
 
-Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.3.
+Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.4.
 
 ## Problem: An Imported Photo's Title Does Not Match The Photo Directory
 

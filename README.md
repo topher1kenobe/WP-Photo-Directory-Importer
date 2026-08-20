@@ -111,11 +111,11 @@ Pull requests welcome.
 
 ## Authors
 
-ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci
+ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci, michelleames
 
 ## License
 
-GPLv2 or later. See [LICENSE](LICENSE).
+GPLv2 or later. See the [full license text](https://www.gnu.org/licenses/gpl-2.0.html).
 
 ## Disclaimer
 
