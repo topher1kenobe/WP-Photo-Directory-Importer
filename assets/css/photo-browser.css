@@ -434,9 +434,9 @@
 	white-space: nowrap;
 }
 
-.pdi-card__import {
+.pdi-card__import,
+.pdi-card__viewfull {
 	height: 28px;
-	margin-top: auto;
 	padding: 0 10px;
 	font-size: 13px;
 	line-height: 1;
@@ -447,7 +447,8 @@
 	border-radius: 3px;
 }
 
-.pdi-card__import:hover:not( :disabled ) {
+.pdi-card__import:hover:not( :disabled ),
+.pdi-card__viewfull:hover {
 	color: #135e96;
 	background: #f0f6fc;
 	border-color: #135e96;
@@ -459,9 +460,17 @@
 }
 
 .pdi-card__link {
-	margin-top: auto;
 	font-size: 13px;
 	color: #2271b1;
+}
+
+.pdi-card__actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	width: 100%;
+	margin-top: auto;
 }
 
 /* --------------------------------------------------------- loading state */
@@ -792,6 +801,99 @@
 .pdi-tray__fill {
 	height: 100%;
 	background: #2271b1;
+}
+
+/* ------------------------------------------------------------ lightbox */
+
+.pdi-lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 60px 40px 40px;
+	box-sizing: border-box;
+	background: rgba( 0, 0, 0, 0.85 );
+}
+
+.pdi-lightbox__frame {
+	position: relative;
+	display: flex;
+	max-width: 100%;
+	max-height: 100%;
+	flex-direction: column;
+	align-items: center;
+}
+
+.pdi-lightbox__image {
+	display: block;
+	max-width: 100%;
+	max-height: calc( 100vh - 180px );
+	border-radius: 3px;
+	box-shadow: 0 8px 32px rgba( 0, 0, 0, 0.4 );
+}
+
+.pdi-lightbox__close {
+	position: absolute;
+	top: -44px;
+	right: 0;
+	padding: 4px 8px;
+	font-size: 32px;
+	line-height: 1;
+	color: #fff;
+	cursor: pointer;
+	background: none;
+	border: 0;
+}
+
+.pdi-lightbox__close:hover {
+	opacity: 0.8;
+}
+
+.pdi-lightbox__footer {
+	display: flex;
+	align-items: center;
+	max-width: 100%;
+	gap: 16px;
+	margin-top: 16px;
+}
+
+.pdi-lightbox__title {
+	overflow: hidden;
+	font-size: 14px;
+	color: #fff;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pdi-lightbox__import {
+	flex-shrink: 0;
+	height: 32px;
+	padding: 0 14px;
+	font-size: 13px;
+	line-height: 1;
+	color: #2271b1;
+	cursor: pointer;
+	background: #fff;
+	border: 1px solid #fff;
+	border-radius: 3px;
+}
+
+.pdi-lightbox__import:hover:not( :disabled ) {
+	background: #f0f6fc;
+}
+
+.pdi-lightbox__import:disabled {
+	cursor: default;
+	opacity: 0.7;
+}
+
+.pdi-lightbox__link {
+	flex-shrink: 0;
+	font-size: 13px;
+	color: #fff;
+	text-decoration: underline;
 }
 
 /* ------------------------------------------------------------------ focus */

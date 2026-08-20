@@ -4,7 +4,7 @@ Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3.4
+Stable tag: 1.3.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,13 @@ Entry points:
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.5 =
+* Added a "View full" button to every photo card on the Media > Photo
+  Directory browse screen. Opens the photo's full-size image in a
+  lightbox (closes on Escape or clicking outside the image), which
+  includes its own Import button (or a "View in library" link, once the
+  photo has been imported).
 
 = 1.3.4 =
 * Rebuilt **Media > Photo Directory** as a filterable browse screen
