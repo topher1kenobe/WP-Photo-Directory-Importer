@@ -3,7 +3,7 @@
  * Plugin Name:       WP Photo Directory Importer
  * Plugin URI:        https://github.com/your-username/wp-photo-directory-importer
  * Description:       Search the WordPress Photo Directory (wordpress.org/photos) and import CC0 photos straight into your Media Library — usable as featured images or anywhere else.
- * Version:           1.3.3
+ * Version:           1.3.4
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci, michelleames
