@@ -24,7 +24,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class PDI_API {
 
-	const REMOTE_BASE     = 'https://wordpress.org/photos/wp-json/wp/v2/photos';
+	const REMOTE_BASE = 'https://wordpress.org/photos/wp-json/wp/v2/photos';
+
+	/**
+	 * The only two link relations normalize_item() reads. Naming them keeps
+	 * `wp:term` out of the response, which the endpoint would otherwise
+	 * expand into a full object per taxonomy per photo. The taxonomy IDs
+	 * this plugin needs are already on the item itself.
+	 */
+	const EMBED_RELATIONS = 'author,wp:featuredmedia';
+
 	const TAXONOMY_BASE   = 'https://wordpress.org/photos/wp-json/wp/v2/';
 	const CACHE_TTL       = 300; // 5 minutes.
 	const TERMS_CACHE_TTL = DAY_IN_SECONDS;
@@ -116,7 +125,7 @@ class PDI_API {
 		$args = array(
 			'page'     => $page,
 			'per_page' => $per_page,
-			'_embed'   => 1,
+			'_embed'   => self::EMBED_RELATIONS,
 			'orderby'  => $filters['sort'],
 			'order'    => 'desc',
 		);
@@ -354,7 +363,7 @@ class PDI_API {
 			return new WP_Error( 'pdi_bad_id', __( 'Invalid photo ID.', 'pdi' ) );
 		}
 
-		$url = add_query_arg( array( '_embed' => 1 ), self::REMOTE_BASE . '/' . $id );
+		$url = add_query_arg( array( '_embed' => self::EMBED_RELATIONS ), self::REMOTE_BASE . '/' . $id );
 
 		$response = wp_remote_get(
 			$url,
