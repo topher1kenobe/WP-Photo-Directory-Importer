@@ -559,31 +559,129 @@
 				{ className: 'pdi-card__body' },
 				h( 'span', { className: 'pdi-card__title', title: photo.title }, photo.title ),
 				meta ? h( 'span', { className: 'pdi-card__meta' }, meta ) : null,
-				attachmentId
-					? h(
-							'a',
-							{
-								className: 'pdi-card__link',
-								href: props.libraryUrl,
-								onClick: function ( event ) {
-									event.stopPropagation();
+				h(
+					'div',
+					{ className: 'pdi-card__actions' },
+					attachmentId
+						? h(
+								'a',
+								{
+									className: 'pdi-card__link',
+									href: props.libraryUrl,
+									onClick: function ( event ) {
+										event.stopPropagation();
+									},
 								},
-							},
-							strings.viewInLibrary
-					  )
-					: h(
-							'button',
-							{
-								type: 'button',
-								className: 'pdi-card__import',
-								disabled: props.importing,
-								onClick: function ( event ) {
-									event.stopPropagation();
-									props.onImport( photo );
+								strings.viewInLibrary
+						  )
+						: h(
+								'button',
+								{
+									type: 'button',
+									className: 'pdi-card__import',
+									disabled: props.importing,
+									onClick: function ( event ) {
+										event.stopPropagation();
+										props.onImport( photo );
+									},
 								},
+								props.importing ? strings.importing : strings.import
+						  ),
+					h(
+						'button',
+						{
+							type: 'button',
+							className: 'pdi-card__viewfull',
+							onClick: function ( event ) {
+								event.stopPropagation();
+								props.onViewFull( photo );
 							},
-							props.importing ? strings.importing : strings.import
-					  )
+						},
+						strings.viewFull
+					)
+				)
+			)
+		);
+	}
+
+	// -------------------------------------------------------- the lightbox
+
+	function Lightbox( props ) {
+		var photo = props.photo;
+
+		var closeRef = useRef( null );
+
+		useEffect(
+			function () {
+				if ( closeRef.current ) {
+					closeRef.current.focus();
+				}
+
+				function onKeyDown( event ) {
+					if ( 'Escape' === event.key ) {
+						props.onClose();
+					}
+				}
+
+				document.addEventListener( 'keydown', onKeyDown );
+				return function () {
+					document.removeEventListener( 'keydown', onKeyDown );
+				};
+			},
+			[ photo.id ]
+		);
+
+		var full = ( photo.sizes && ( photo.sizes.full || photo.sizes.large || photo.sizes.medium ) ) || null;
+		var imageUrl = full ? full.url : photo.thumbUrl;
+
+		return h(
+			'div',
+			{
+				className: 'pdi-lightbox',
+				onClick: function ( event ) {
+					if ( event.target === event.currentTarget ) {
+						props.onClose();
+					}
+				},
+			},
+			h(
+				'div',
+				{ className: 'pdi-lightbox__frame' },
+				h(
+					'button',
+					{
+						ref: closeRef,
+						type: 'button',
+						className: 'pdi-lightbox__close',
+						'aria-label': strings.close,
+						onClick: props.onClose,
+					},
+					'×'
+				),
+				imageUrl ? h( 'img', { className: 'pdi-lightbox__image', src: imageUrl, alt: photo.alt || photo.title } ) : null,
+				h(
+					'div',
+					{ className: 'pdi-lightbox__footer' },
+					h( 'span', { className: 'pdi-lightbox__title' }, photo.title ),
+					props.attachmentId
+						? h(
+								'a',
+								{ className: 'pdi-lightbox__link', href: props.libraryUrl },
+								strings.viewInLibrary
+						  )
+						: h(
+								'button',
+								{
+									type: 'button',
+									className: 'pdi-lightbox__import',
+									disabled: props.importing,
+									onClick: function () {
+										props.onImport( photo );
+									},
+								},
+								props.importing ? strings.importing : strings.import
+						  )
+				)
 			)
 		);
 	}
@@ -774,6 +872,10 @@
 		var termsState = useState( {} );
 		var terms      = termsState[ 0 ];
 		var setTerms   = termsState[ 1 ];
+
+		var lightboxState    = useState( null );
+		var lightboxPhoto    = lightboxState[ 0 ];
+		var setLightboxPhoto = lightboxState[ 1 ];
 
 		// Guards against a slow earlier request landing after a newer one and
 		// overwriting fresher results, which debounced typing makes likely.
@@ -1163,6 +1265,9 @@
 									importing: !! state.importing[ photo.id ],
 									selected: -1 !== state.selected.indexOf( photo.id ),
 									onImport: importPhoto,
+									onViewFull: function ( viewPhoto ) {
+										setLightboxPhoto( viewPhoto );
+									},
 									onToggle: function ( selectedPhoto ) {
 										dispatch( { type: 'TOGGLE_SELECT', photo: selectedPhoto } );
 									},
@@ -1221,6 +1326,20 @@
 						onImport: runImport,
 						onCancel: function () {
 							cancelled.current = true;
+						},
+				  } )
+				: null,
+			lightboxPhoto
+				? h( Lightbox, {
+						photo: lightboxPhoto,
+						attachmentId: state.importedMap[ lightboxPhoto.id ],
+						libraryUrl: state.importedMap[ lightboxPhoto.id ]
+							? settings.libraryUrl + '?item=' + state.importedMap[ lightboxPhoto.id ]
+							: '',
+						importing: !! state.importing[ lightboxPhoto.id ],
+						onImport: importPhoto,
+						onClose: function () {
+							setLightboxPhoto( null );
 						},
 				  } )
 				: null

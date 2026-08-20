@@ -188,6 +188,8 @@ class PDI_Plugin {
 				'import'              => __( 'Import', 'pdi' ),
 				'importing'           => __( 'Importing…', 'pdi' ),
 				'viewInLibrary'       => __( 'View in library', 'pdi' ),
+				'viewFull'            => __( 'View full', 'pdi' ),
+				'close'               => __( 'Close', 'pdi' ),
 				'loadMore'            => __( 'Load more photos', 'pdi' ),
 				'loading'             => __( 'Loading…', 'pdi' ),
 				/* translators: 1: number of photos shown so far, 2: total number available */
