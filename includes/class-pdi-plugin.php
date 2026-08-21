@@ -48,9 +48,77 @@ class PDI_Plugin {
 		add_action( 'admin_menu', array( 'PDI_Settings', 'register_page' ) );
 		add_action( 'admin_init', array( 'PDI_Settings', 'register_setting' ) );
 
+		add_filter( 'all_plugins', array( $this, 'link_authors_to_profiles' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( PDI_PLUGIN_FILE ), array( $this, 'add_settings_link' ) );
+
 		add_action( 'wp_ajax_pdi_search', array( 'PDI_API', 'ajax_search' ) );
 		add_action( 'wp_ajax_pdi_terms', array( 'PDI_API', 'ajax_terms' ) );
 		add_action( 'wp_ajax_pdi_import', array( 'PDI_Importer', 'ajax_import' ) );
+	}
+
+	/**
+	 * The Plugins list table wraps the whole "Author" string in a single
+	 * link to Author URI — there's no per-name linking in the standard
+	 * plugin header format. Since every name in ours is already a
+	 * wordpress.org username (matching readme.txt's Contributors field),
+	 * this rewrites our own row's Author field into one link per name,
+	 * each pointing at that person's own wordpress.org profile, instead of
+	 * the whole list pointing at one shared URL.
+	 *
+	 * `get_plugins()` (which feeds this filter) reads Author/AuthorURI as
+	 * plain, unlinked strings, so `$plugins[...]['Author']` here is still
+	 * just the raw comma-separated header value — nothing to unwrap first.
+	 *
+	 * @param array $plugins Plugin data keyed by plugin file, as returned by get_plugins().
+	 * @return array
+	 */
+	public function link_authors_to_profiles( $plugins ) {
+		$basename = plugin_basename( PDI_PLUGIN_FILE );
+
+		if ( empty( $plugins[ $basename ]['Author'] ) ) {
+			return $plugins;
+		}
+
+		$usernames = array_filter( array_map( 'trim', explode( ',', $plugins[ $basename ]['Author'] ) ) );
+
+		$links = array_map(
+			function ( $username ) {
+				return sprintf(
+					'<a href="%s">%s</a>',
+					esc_url( 'https://profiles.wordpress.org/' . rawurlencode( $username ) ),
+					esc_html( $username )
+				);
+			},
+			$usernames
+		);
+
+		$plugins[ $basename ]['Author']    = implode( ', ', $links );
+		// Emptied so the list table doesn't also wrap these already-linked
+		// names in one more outer <a> pointing at Author URI.
+		$plugins[ $basename ]['AuthorURI'] = '';
+
+		return $plugins;
+	}
+
+	/**
+	 * Adds a "Settings" link to this plugin's row on the Plugins page,
+	 * appearing first among the action links (so immediately next to
+	 * "Deactivate").
+	 *
+	 * @param string[] $links Existing action links (Activate/Deactivate, Edit, etc.).
+	 * @return string[]
+	 */
+	public function add_settings_link( $links ) {
+		array_unshift(
+			$links,
+			sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( admin_url( 'options-general.php?page=' . PDI_Settings::PAGE_SLUG ) ),
+				esc_html__( 'Settings', 'pdi' )
+			)
+		);
+
+		return $links;
 	}
 
 	/**

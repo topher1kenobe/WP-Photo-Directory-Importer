@@ -4,7 +4,7 @@ Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.11
+Stable tag: 1.3.12
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -110,6 +110,16 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.12 =
+* On the Plugins list page, each contributor's name now links to their
+  own wordpress.org profile (`https://profiles.wordpress.org/username`)
+  instead of the whole comma-separated author list linking to one shared
+  GitHub URL — the standard plugin header format only supports one link
+  for the entire "Author" string, so this rewrites the row directly via
+  the `all_plugins` filter.
+* Added a "Settings" link to the plugin's row on the Plugins page,
+  appearing first among the action links, right next to "Deactivate".
 
 = 1.3.11 =
 * Added a quality field to **Settings > Photo Directory**, shown only

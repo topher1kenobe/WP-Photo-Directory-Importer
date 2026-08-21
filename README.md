@@ -162,6 +162,12 @@ Pull requests welcome.
 
 ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci, michelleames
 
+Each name above is a wordpress.org username. On the Plugins list page, each
+one links to `https://profiles.wordpress.org/username` individually — the
+standard plugin header format only supports one shared link for the whole
+"Author" field, so `PDI_Plugin::link_authors_to_profiles()` rewrites the
+row via the `all_plugins` filter to give each name its own link instead.
+
 ## License
 
 GPLv2 or later. See the [full license text](https://www.gnu.org/licenses/gpl-2.0.html).
