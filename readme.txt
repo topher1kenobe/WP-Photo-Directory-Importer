@@ -30,6 +30,38 @@ Entry points:
   etc.) — works in both the classic and block editor, since they share the
   same underlying media picker.
 
+== Installation ==
+
+1. Upload the plugin files to the `/wp-content/plugins/wp-photo-directory-importer` directory, or install the plugin through the **Plugins > Add New** screen in wp-admin directly.
+2. Activate the plugin through the **Plugins** screen in WordPress.
+3. That's it — no configuration is needed and no API key or account is required. Look under **Media > Photo Directory**, use the "Photo Directory" button next to Add Media in the classic editor, or use the "Photo Directory" tab inside the native media picker (Set Featured Image, Add Media, an Image block's Media Library button, etc.).
+
+== Frequently Asked Questions ==
+
+= Do I need an API key or account to use this? =
+
+No. The Photo Directory REST API is public, so the plugin works as soon as it's activated.
+
+= Do I need to credit the photographer? =
+
+No — every photo on the Photo Directory is released under CC0, so attribution isn't legally required. The plugin adds a photographer credit line to each imported photo's caption anyway, when the API provides an author name, so credit is there if you choose to show it.
+
+= Why does an imported photo's title look like a URL slug instead of a real title? =
+
+Some photos on the Photo Directory only have a generic placeholder title, because the original uploader never set a real one. The plugin recognizes those placeholders and falls back to a title built from the photo's slug or description instead, rather than importing the placeholder text as-is. It's a best-effort fallback, not guaranteed to read naturally — worth a glance before publishing.
+
+= Why don't I see the "Photo Directory" button in the block editor? =
+
+That button is added next to Add Media via the `media_buttons` hook, which only the classic editor fires. In the block editor, use the "Photo Directory" tab inside the native media picker instead — it opens the same way from Set Featured Image, Add Media, or an Image block's Media Library button.
+
+= Can I choose what size image gets imported? =
+
+Yes. Both the Media > Photo Directory browse screen and the media picker tab let you choose Full, Large, or Medium before importing.
+
+= Where does the plugin store which photos I've already imported? =
+
+Each imported attachment gets a `_pdi_source_id` meta value matching its ID on the Photo Directory. Importing the same photo again returns the existing attachment instead of downloading a duplicate.
+
 == Notes for developers ==
 
 * This is an unofficial integration with a public but not formally
@@ -254,3 +286,8 @@ exploited vulnerability.
 
 = 1.0.0 =
 * Initial release.
+
+== Upgrade Notice ==
+
+= 1.3.9 =
+Corrects the trusted image-host allowlist added in 1.3.7, which could block all imports on some installs via a wrong default in 1.3.7 (and a partial fix in 1.3.8). Recommended if you're running 1.3.7 or 1.3.8.
