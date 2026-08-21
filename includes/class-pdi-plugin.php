@@ -296,6 +296,8 @@ class PDI_Plugin {
 				/* translators: 1: current photo number, 2: total photos */
 				'importingProgress' => __( 'Importing %1$s of %2$s…', 'pdi' ),
 				'importFailed'      => __( 'Some photos could not be imported.', 'pdi' ),
+				'viewFull'          => __( 'View full', 'pdi' ),
+				'close'             => __( 'Close', 'pdi' ),
 			),
 		);
 	}

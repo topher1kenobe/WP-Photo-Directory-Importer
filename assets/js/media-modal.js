@@ -113,6 +113,8 @@
 			this.hasMore = false;
 			this.busy    = false;
 			this.requestId = 0;
+			this.lightboxEl = null;
+			this.lightboxKeydown = null;
 		},
 
 		render: function () {
@@ -395,7 +397,7 @@
 
 		renderSidebar: function () {
 			var self  = this;
-			var photo = this.lastClicked ? this.photos[ this.lastClicked ] : null;
+			var photo = this.currentPhoto();
 
 			this.sidebarEl.innerHTML = '';
 			this.sidebarEl.appendChild( el( 'span', { class: 'pdi-tab__sidebarlabel', text: strings.detailsLabel } ) );
@@ -475,6 +477,7 @@
 		renderFooter: function () {
 			var self  = this;
 			var count = this.selected.length;
+			var photo = this.currentPhoto();
 
 			this.footerEl.innerHTML = '';
 
@@ -485,6 +488,19 @@
 						? strings.selectedStatusOne
 						: format( strings.selectedStatus, [ count ] )
 					: strings.nothingSelected,
+			} );
+
+			var viewFullBtn = el( 'button', {
+				type: 'button',
+				class: 'button pdi-tab__action',
+				text: strings.viewFull,
+			} );
+			viewFullBtn.disabled = ! photo;
+			viewFullBtn.addEventListener( 'click', function () {
+				var current = self.currentPhoto();
+				if ( current ) {
+					self.openLightbox( current );
+				}
 			} );
 
 			var importBtn = el( 'button', {
@@ -509,7 +525,7 @@
 			} );
 
 			this.footerEl.appendChild( status );
-			this.footerEl.appendChild( el( 'div', { class: 'pdi-tab__actions' }, [ importBtn, insertBtn ] ) );
+			this.footerEl.appendChild( el( 'div', { class: 'pdi-tab__actions' }, [ viewFullBtn, importBtn, insertBtn ] ) );
 		},
 
 		/**
@@ -547,6 +563,94 @@
 			if ( status ) {
 				status.textContent = message;
 			}
+		},
+
+		// -------------------------------------------------------- lightbox
+
+		/**
+		 * @return {Object|null} The photo currently shown in the sidebar, or
+		 *                        null when nothing has been clicked yet.
+		 */
+		currentPhoto: function () {
+			return this.lastClicked ? this.photos[ this.lastClicked ] : null;
+		},
+
+		/**
+		 * Opens a full-size, image-only overlay for one photo. Appended to
+		 * document.body rather than nested inside this view's own element,
+		 * so its z-index only has to clear wp.media's modal chrome once,
+		 * rather than also contend with any stacking context this view's
+		 * ancestors might introduce.
+		 *
+		 * @param {Object} photo Normalized photo data.
+		 */
+		openLightbox: function ( photo ) {
+			var self  = this;
+			var sizes = photo.sizes || {};
+			var full  = sizes.full || sizes.large || sizes.medium;
+			var url   = full ? full.url : photo.thumbUrl;
+
+			if ( ! url ) {
+				return;
+			}
+
+			this.closeLightbox();
+
+			var closeBtn = el( 'button', {
+				type: 'button',
+				class: 'pdi-tab-lightbox__close',
+				'aria-label': strings.close,
+				text: '×',
+			} );
+			closeBtn.addEventListener( 'click', function () {
+				self.closeLightbox();
+			} );
+
+			var overlay = el( 'div', { class: 'pdi-tab-lightbox' }, [
+				el( 'div', { class: 'pdi-tab-lightbox__frame' }, [
+					closeBtn,
+					el( 'img', { class: 'pdi-tab-lightbox__image', src: url, alt: photo.alt || photo.title } ),
+				] ),
+			] );
+
+			overlay.addEventListener( 'click', function ( event ) {
+				if ( event.target === overlay ) {
+					self.closeLightbox();
+				}
+			} );
+
+			this.lightboxKeydown = function ( event ) {
+				if ( 'Escape' === event.key ) {
+					self.closeLightbox();
+				}
+			};
+			document.addEventListener( 'keydown', this.lightboxKeydown );
+
+			document.body.appendChild( overlay );
+			this.lightboxEl = overlay;
+			closeBtn.focus();
+		},
+
+		closeLightbox: function () {
+			if ( this.lightboxKeydown ) {
+				document.removeEventListener( 'keydown', this.lightboxKeydown );
+				this.lightboxKeydown = null;
+			}
+			if ( this.lightboxEl ) {
+				this.lightboxEl.parentNode.removeChild( this.lightboxEl );
+				this.lightboxEl = null;
+			}
+		},
+
+		/**
+		 * Backbone calls this when the frame tears the tab's content view
+		 * down (e.g. the modal closes, or another router tab is chosen).
+		 * Overridden only to make sure a still-open lightbox doesn't leak
+		 * as an orphaned element on document.body.
+		 */
+		remove: function () {
+			this.closeLightbox();
+			return media.View.prototype.remove.apply( this, arguments );
 		},
 
 		/**
