@@ -43,10 +43,11 @@ Directory API is public.
 | `includes/class-pdi-plugin.php` | Hook registration, asset registration, admin page, media button. |
 | `includes/class-pdi-api.php` | Talks to the upstream Photo Directory REST API and normalizes its response (search + single-photo lookup, transient caching). |
 | `includes/class-pdi-importer.php` | Downloads a chosen photo, optionally converts its format, and sideloads it into the local Media Library via `media_handle_sideload()`, with de-duplication and caption/credit handling. |
-| `includes/class-pdi-settings.php` | The Settings > Photo Directory page: detects WebP/AVIF support and lets the site owner choose an output format. |
+| `includes/class-pdi-settings.php` | The Settings > Photo Directory page: detects WebP/AVIF support and lets the site owner choose an output format and quality. |
 | `assets/js/photo-browser.js` | The Media > Photo Directory browse screen (React via `wp-element`): search, filters, multi-select, bulk import. |
 | `assets/js/admin.js` | The classic-editor "Photo Directory" button's pop-up picker. |
 | `assets/js/media-modal.js` | Adds the "Photo Directory" tab to the native `wp.media` frame (Set Featured Image, Add Media, etc.) and hands imported photos to that frame's own selection/toolbar. |
+| `assets/js/settings.js` | Shows/hides the quality field on Settings > Photo Directory based on which format is selected. |
 
 Every imported attachment gets:
 
@@ -87,6 +88,10 @@ converted to a different format before they're added to the Media Library:
   presence alone), a picker appears: keep the original format, convert to
   WebP, or convert to AVIF (offered only when that's supported too). WebP
   is the default whenever it's available.
+- A quality field (1–100, default 82 — matching core's own default JPEG
+  compression quality) appears alongside the format picker whenever WebP
+  or AVIF is selected, and is hidden when "Keep original format" is
+  selected, since nothing gets re-encoded in that case.
 - If WebP isn't supported, the page just says so — no picker, and photos
   keep their original format, same as before this feature existed.
 

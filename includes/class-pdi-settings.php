@@ -20,8 +20,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class PDI_Settings {
 
-	const OPTION_NAME = 'pdi_image_format';
-	const PAGE_SLUG   = 'pdi-settings';
+	const OPTION_NAME         = 'pdi_image_format';
+	const QUALITY_OPTION_NAME = 'pdi_image_quality';
+	const PAGE_SLUG           = 'pdi-settings';
+	const DEFAULT_QUALITY     = 82; // Matches core's own default JPEG compression quality.
 
 	/**
 	 * Registers the settings page under the Settings menu.
@@ -37,7 +39,7 @@ class PDI_Settings {
 	}
 
 	/**
-	 * Registers the setting with the Settings API, so the page's <form>
+	 * Registers both settings with the Settings API, so the page's <form>
 	 * posts to options.php and gets WordPress's own nonce handling for free.
 	 */
 	public static function register_setting() {
@@ -48,6 +50,16 @@ class PDI_Settings {
 				'type'              => 'string',
 				'sanitize_callback' => array( __CLASS__, 'sanitize_format' ),
 				'default'           => self::default_format(),
+			)
+		);
+
+		register_setting(
+			'pdi_settings',
+			self::QUALITY_OPTION_NAME,
+			array(
+				'type'              => 'integer',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_quality' ),
+				'default'           => self::DEFAULT_QUALITY,
 			)
 		);
 	}
@@ -117,6 +129,35 @@ class PDI_Settings {
 	}
 
 	/**
+	 * Clamps a posted quality value to the 1–100 range WP_Image_Editor
+	 * expects, rather than rejecting an out-of-range value outright.
+	 *
+	 * @param mixed $value Raw posted value.
+	 * @return int Integer between 1 and 100.
+	 */
+	public static function sanitize_quality( $value ) {
+		$value = absint( $value );
+		if ( $value < 1 ) {
+			return 1;
+		}
+		if ( $value > 100 ) {
+			return 100;
+		}
+		return $value;
+	}
+
+	/**
+	 * The quality to use when converting to WebP or AVIF. Never consulted
+	 * when the format is 'original', since nothing is re-encoded in that
+	 * case — there's no "JPEG quality" setting here on purpose.
+	 *
+	 * @return int Integer between 1 and 100.
+	 */
+	public static function get_quality() {
+		return self::sanitize_quality( get_option( self::QUALITY_OPTION_NAME, self::DEFAULT_QUALITY ) );
+	}
+
+	/**
 	 * Renders the settings page.
 	 */
 	public static function render_page() {
@@ -126,6 +167,10 @@ class PDI_Settings {
 
 		$supported   = self::supported_formats();
 		$can_convert = isset( $supported['webp'] );
+
+		if ( $can_convert ) {
+			wp_enqueue_script( 'pdi-settings' );
+		}
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Photo Directory', 'pdi' ); ?></h1>
@@ -147,6 +192,7 @@ class PDI_Settings {
 							<label style="display:block;margin-bottom:8px;">
 								<input
 									type="radio"
+									class="pdi-format-radio"
 									name="<?php echo esc_attr( self::OPTION_NAME ); ?>"
 									value="<?php echo esc_attr( $value ); ?>"
 									<?php checked( self::get_format(), $value ); ?>
@@ -155,6 +201,29 @@ class PDI_Settings {
 							</label>
 						<?php endforeach; ?>
 					</fieldset>
+
+					<div id="pdi-quality-row" style="margin-top:16px;<?php echo ( 'original' === self::get_format() ) ? ' display:none;' : ''; ?>">
+						<h2><?php esc_html_e( 'Image quality', 'pdi' ); ?></h2>
+						<p>
+							<label for="pdi-quality-input">
+								<?php esc_html_e( 'Quality (1–100):', 'pdi' ); ?>
+							</label>
+							<input
+								type="number"
+								id="pdi-quality-input"
+								name="<?php echo esc_attr( self::QUALITY_OPTION_NAME ); ?>"
+								value="<?php echo esc_attr( self::get_quality() ); ?>"
+								min="1"
+								max="100"
+								step="1"
+								class="small-text"
+							/>
+						</p>
+						<p class="description">
+							<?php esc_html_e( 'Higher keeps more detail but produces a larger file. Used only when converting to WebP or AVIF — the original format, if kept, is never re-encoded.', 'pdi' ); ?>
+						</p>
+					</div>
+
 					<?php submit_button(); ?>
 				</form>
 			<?php endif; ?>

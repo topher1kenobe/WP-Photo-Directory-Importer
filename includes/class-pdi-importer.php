@@ -452,6 +452,11 @@ class PDI_Importer {
 			return $original;
 		}
 
+		// Quality only ever applies here — this whole branch is unreachable
+		// when the format is 'original', so nothing re-encodes (and no
+		// quality setting applies to) whatever format the photo already was.
+		$editor->set_quality( PDI_Settings::get_quality() );
+
 		$new_path = wp_tempnam( $filename );
 		$saved    = $editor->save( $new_path, $mime );
 
