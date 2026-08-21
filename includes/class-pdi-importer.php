@@ -250,8 +250,13 @@ class PDI_Importer {
 			return $tmp_file;
 		}
 
+		$filename  = self::guess_filename( $source_url, $photo );
+		$converted = self::maybe_convert_image( $tmp_file, $filename );
+		$tmp_file  = $converted['tmp_file'];
+		$filename  = $converted['filename'];
+
 		$file_array = array(
-			'name'     => self::guess_filename( $source_url, $photo ),
+			'name'     => $filename,
 			'tmp_name' => $tmp_file,
 		);
 
@@ -410,6 +415,73 @@ class PDI_Importer {
 			$base = sanitize_file_name( $slug ) . '.jpg';
 		}
 		return sanitize_file_name( $base );
+	}
+
+	/**
+	 * Converts the downloaded temp file to the site's preferred image
+	 * format (Settings > Photo Directory), when one is configured and this
+	 * server's image editor actually supports producing it. Falls back to
+	 * the original file untouched on any failure — format conversion is a
+	 * nice extra, never something that should be able to break an import.
+	 *
+	 * @param string $tmp_file Path to the downloaded temp file.
+	 * @param string $filename Filename guessed for the original download.
+	 * @return array {
+	 *     @type string $tmp_file Path to use going forward (converted copy, or the original).
+	 *     @type string $filename Filename to use going forward (extension swapped to match).
+	 * }
+	 */
+	private static function maybe_convert_image( $tmp_file, $filename ) {
+		$original = array(
+			'tmp_file' => $tmp_file,
+			'filename' => $filename,
+		);
+
+		$format = PDI_Settings::get_format();
+		if ( 'original' === $format ) {
+			return $original;
+		}
+
+		$mime = 'webp' === $format ? 'image/webp' : 'image/avif';
+		if ( ! wp_image_editor_supports( array( 'mime_type' => $mime ) ) ) {
+			return $original;
+		}
+
+		$editor = wp_get_image_editor( $tmp_file );
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( $mime ) ) {
+			return $original;
+		}
+
+		$new_path = wp_tempnam( $filename );
+		$saved    = $editor->save( $new_path, $mime );
+
+		if ( is_wp_error( $saved ) || empty( $saved['path'] ) ) {
+			if ( file_exists( $new_path ) ) {
+				wp_delete_file( $new_path );
+			}
+			return $original;
+		}
+
+		// The original download is no longer needed once the converted copy exists.
+		if ( file_exists( $tmp_file ) ) {
+			wp_delete_file( $tmp_file );
+		}
+
+		return array(
+			'tmp_file' => $saved['path'],
+			'filename' => self::swap_extension( $filename, 'webp' === $format ? 'webp' : 'avif' ),
+		);
+	}
+
+	/**
+	 * @param string $filename Original filename.
+	 * @param string $ext      New extension, without the leading dot.
+	 * @return string Filename with its extension replaced.
+	 */
+	private static function swap_extension( $filename, $ext ) {
+		$dot  = strrpos( $filename, '.' );
+		$base = false !== $dot ? substr( $filename, 0, $dot ) : $filename;
+		return $base . '.' . $ext;
 	}
 
 	/**

@@ -1,0 +1,164 @@
+<?php
+/**
+ * Settings page: choose whether imported photos get converted to a
+ * different image format before they're added to the Media Library.
+ *
+ * @package WP_Photo_Directory_Importer
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Adds Settings > Photo Directory, letting the site owner choose an
+ * output format for imported photos when this server's image editor can
+ * actually produce one. Deliberately gated on WebP support specifically:
+ * if the server can't produce WebP, imported photos keep their original
+ * format and no format picker is shown at all, since AVIF-only support
+ * with no WebP is not a configuration this plugin tries to accommodate.
+ */
+class PDI_Settings {
+
+	const OPTION_NAME = 'pdi_image_format';
+	const PAGE_SLUG   = 'pdi-settings';
+
+	/**
+	 * Registers the settings page under the Settings menu.
+	 */
+	public static function register_page() {
+		add_options_page(
+			__( 'Photo Directory', 'pdi' ),
+			__( 'Photo Directory', 'pdi' ),
+			'manage_options',
+			self::PAGE_SLUG,
+			array( __CLASS__, 'render_page' )
+		);
+	}
+
+	/**
+	 * Registers the setting with the Settings API, so the page's <form>
+	 * posts to options.php and gets WordPress's own nonce handling for free.
+	 */
+	public static function register_setting() {
+		register_setting(
+			'pdi_settings',
+			self::OPTION_NAME,
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => array( __CLASS__, 'sanitize_format' ),
+				'default'           => self::default_format(),
+			)
+		);
+	}
+
+	/**
+	 * Formats this server's image editor can actually produce right now.
+	 * 'original' (no conversion) is always the first entry. WebP and AVIF
+	 * are added only when `wp_image_editor_supports()` confirms this
+	 * server's registered image editor (GD or Imagick, whichever core
+	 * picked) can encode that format — checking capability rather than
+	 * assuming based on PHP version or extension presence alone.
+	 *
+	 * Returns just `array( 'original' => ... )` when WebP specifically
+	 * isn't supported, which callers use as the signal to show a plain
+	 * "not available" message instead of a picker.
+	 *
+	 * @return array Map of format value => label.
+	 */
+	public static function supported_formats() {
+		$formats = array(
+			'original' => __( 'Keep original format', 'pdi' ),
+		);
+
+		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+			return $formats;
+		}
+
+		$formats['webp'] = __( 'Convert to WebP', 'pdi' );
+
+		if ( wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
+			$formats['avif'] = __( 'Convert to AVIF', 'pdi' );
+		}
+
+		return $formats;
+	}
+
+	/**
+	 * @return string 'webp' when this server can produce it, 'original' otherwise.
+	 */
+	public static function default_format() {
+		$supported = self::supported_formats();
+		return isset( $supported['webp'] ) ? 'webp' : 'original';
+	}
+
+	/**
+	 * @param string $value Raw posted value.
+	 * @return string A key guaranteed to exist in supported_formats().
+	 */
+	public static function sanitize_format( $value ) {
+		$value     = sanitize_key( (string) $value );
+		$supported = self::supported_formats();
+		return isset( $supported[ $value ] ) ? $value : self::default_format();
+	}
+
+	/**
+	 * The format to actually use at import time. Re-validates the stored
+	 * option against live capability rather than trusting it outright, in
+	 * case the environment changed (e.g. a staging clone without the same
+	 * PHP image libraries) since the setting was last saved.
+	 *
+	 * @return string One of the keys returned by supported_formats().
+	 */
+	public static function get_format() {
+		$stored    = get_option( self::OPTION_NAME, self::default_format() );
+		$supported = self::supported_formats();
+		return isset( $supported[ $stored ] ) ? $stored : self::default_format();
+	}
+
+	/**
+	 * Renders the settings page.
+	 */
+	public static function render_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$supported   = self::supported_formats();
+		$can_convert = isset( $supported['webp'] );
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'Photo Directory', 'pdi' ); ?></h1>
+
+			<?php if ( ! $can_convert ) : ?>
+				<p>
+					<?php esc_html_e( 'WebP conversion is not available on this server. Imported photos will keep their original format.', 'pdi' ); ?>
+				</p>
+			<?php else : ?>
+				<form action="options.php" method="post">
+					<?php settings_fields( 'pdi_settings' ); ?>
+					<h2><?php esc_html_e( 'Image format', 'pdi' ); ?></h2>
+					<p>
+						<?php esc_html_e( 'Choose whether photos imported from the Photo Directory should be converted to a different format before they’re added to your Media Library.', 'pdi' ); ?>
+					</p>
+					<fieldset>
+						<legend class="screen-reader-text"><?php esc_html_e( 'Image format', 'pdi' ); ?></legend>
+						<?php foreach ( $supported as $value => $label ) : ?>
+							<label style="display:block;margin-bottom:8px;">
+								<input
+									type="radio"
+									name="<?php echo esc_attr( self::OPTION_NAME ); ?>"
+									value="<?php echo esc_attr( $value ); ?>"
+									<?php checked( self::get_format(), $value ); ?>
+								/>
+								<?php echo esc_html( $label ); ?>
+							</label>
+						<?php endforeach; ?>
+					</fieldset>
+					<?php submit_button(); ?>
+				</form>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+}

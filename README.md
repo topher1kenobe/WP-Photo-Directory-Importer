@@ -42,8 +42,10 @@ Directory API is public.
 | `wp-photo-directory-importer.php` | Plugin bootstrap: defines constants, loads the include files. |
 | `includes/class-pdi-plugin.php` | Hook registration, asset registration, admin page, media button. |
 | `includes/class-pdi-api.php` | Talks to the upstream Photo Directory REST API and normalizes its response (search + single-photo lookup, transient caching). |
-| `includes/class-pdi-importer.php` | Downloads a chosen photo and sideloads it into the local Media Library via `media_handle_sideload()`, with de-duplication and caption/credit handling. |
-| `assets/js/admin.js` | The search/grid picker UI. Renders inline on the admin page, or inside a modal when opened from the classic editor button. |
+| `includes/class-pdi-importer.php` | Downloads a chosen photo, optionally converts its format, and sideloads it into the local Media Library via `media_handle_sideload()`, with de-duplication and caption/credit handling. |
+| `includes/class-pdi-settings.php` | The Settings > Photo Directory page: detects WebP/AVIF support and lets the site owner choose an output format. |
+| `assets/js/photo-browser.js` | The Media > Photo Directory browse screen (React via `wp-element`): search, filters, multi-select, bulk import. |
+| `assets/js/admin.js` | The classic-editor "Photo Directory" button's pop-up picker. |
 | `assets/js/media-modal.js` | Adds the "Photo Directory" tab to the native `wp.media` frame (Set Featured Image, Add Media, etc.) and hands imported photos to that frame's own selection/toolbar. |
 
 Every imported attachment gets:
@@ -74,6 +76,26 @@ Every imported attachment gets:
 All Photo Directory photos are released under **CC0** — no attribution is
 legally required, but the caption credit and meta above make it easy to
 credit uploaders anyway.
+
+## Image format conversion
+
+**Settings > Photo Directory** lets you choose whether imported photos get
+converted to a different format before they're added to the Media Library:
+
+- If this server's image editor can produce WebP (checked live via
+  `wp_image_editor_supports()`, not assumed from PHP version or extension
+  presence alone), a picker appears: keep the original format, convert to
+  WebP, or convert to AVIF (offered only when that's supported too). WebP
+  is the default whenever it's available.
+- If WebP isn't supported, the page just says so — no picker, and photos
+  keep their original format, same as before this feature existed.
+
+Conversion happens in `PDI_Importer::maybe_convert_image()`, right after
+download and before sideloading, so every generated thumbnail/medium/large
+sub-size is produced from the converted file directly. It re-checks
+support at import time rather than trusting the stored setting outright,
+and falls back to the original file on any failure — conversion is meant
+to be a nice-to-have, never something that can turn into a failed import.
 
 ## A note on the upstream API
 
