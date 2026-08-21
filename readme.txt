@@ -4,7 +4,7 @@ Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3.5
+Stable tag: 1.3.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,13 @@ Entry points:
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.6 =
+* Added a "View full" button to the "Photo Directory" tab inside the
+  native media picker (Set Featured Image, Add Media, etc.), next to the
+  "Import only" button in the footer. Opens the currently-detailed
+  photo's full-size image in a plain, image-only overlay (closes on
+  Escape, clicking outside the image, or the close button).
 
 = 1.3.5 =
 * Added a "View full" button to every photo card on the Media > Photo
