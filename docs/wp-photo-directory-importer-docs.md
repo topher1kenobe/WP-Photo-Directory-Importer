@@ -1,6 +1,6 @@
 # WP Photo Directory Importer — Documentation
 
-Version 1.3.10 · Last reviewed 2026-08-16
+Version 1.3.11 · Last reviewed 2026-08-16
 
 This file contains three documents:
 
@@ -103,7 +103,7 @@ The caption is written only when the Photo Directory supplies an author name and
 
 Some photos on the Photo Directory carry only a generic placeholder title, because the original uploader never set a real one. The plugin recognizes those placeholders and builds a title from the photo's descriptive sentence instead, shortened at a word boundary. When there is no usable description either, it falls back to the photo's URL slug, and then to "Untitled photo". A generated title is a best-effort guess, so it is worth a glance before publishing.
 
-If **Settings > Photo Directory** has an image format other than "Keep original format" selected, the photo's file is converted to that format immediately after download, before it's added to the Media Library — so every generated thumbnail size is produced from the converted file, not the original. A conversion failure for any reason falls back to importing the original file untouched.
+If **Settings > Photo Directory** has an image format other than "Keep original format" selected, the photo's file is converted to that format immediately after download, before it's added to the Media Library — so every generated thumbnail size is produced from the converted file, not the original. A quality field (1–100, default 82) controls how that conversion is encoded; it only applies to WebP/AVIF conversion and has no effect when keeping the original format. A conversion failure for any reason falls back to importing the original file untouched.
 
 The plugin also saves hidden values on each attachment so the original photo can be traced later:
 
@@ -175,7 +175,7 @@ After testing, any unwanted photos can be removed from **Media > Library** the s
 
 # Troubleshooting Guide
 
-Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.10.
+Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.11.
 
 ## Problem: An Imported Photo's Title Does Not Match The Photo Directory
 

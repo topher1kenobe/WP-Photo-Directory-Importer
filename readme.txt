@@ -4,7 +4,7 @@ Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.10
+Stable tag: 1.3.11
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,7 +60,7 @@ Yes. Both the Media > Photo Directory browse screen and the media picker tab let
 
 = Can imported photos be converted to WebP or AVIF? =
 
-Yes, if your server's image editor supports it. Go to **Settings > Photo Directory** to choose — WebP is used automatically whenever your server can produce it. If it can't, the page says so plainly and photos keep their original format.
+Yes, if your server's image editor supports it. Go to **Settings > Photo Directory** to choose — WebP is used automatically whenever your server can produce it. If it can't, the page says so plainly and photos keep their original format. A quality field appears alongside the format choice whenever WebP or AVIF is selected; it has no effect when keeping the original format, so it's hidden in that case.
 
 = Where does the plugin store which photos I've already imported? =
 
@@ -110,6 +110,14 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.11 =
+* Added a quality field to **Settings > Photo Directory**, shown only
+  when converting to WebP or AVIF (hidden automatically when "Keep
+  original format" is selected — quality has no meaning there, since
+  nothing gets re-encoded). Defaults to 82, matching WordPress core's own
+  default JPEG compression quality. Clamped to 1–100 on save regardless
+  of what's posted.
 
 = 1.3.10 =
 * Added a **Settings > Photo Directory** page. If this server's image

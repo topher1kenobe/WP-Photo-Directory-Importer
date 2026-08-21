@@ -98,6 +98,8 @@ class PDI_Plugin {
 
 		wp_localize_script( 'pdi-media-modal', 'PDI_Modal', $this->modal_settings() );
 
+		wp_register_script( 'pdi-settings', PDI_PLUGIN_URL . 'assets/js/settings.js', array(), PDI_VERSION, true );
+
 		wp_localize_script(
 			'pdi-admin',
 			'PDI_Settings',
