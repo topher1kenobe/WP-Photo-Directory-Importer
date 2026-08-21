@@ -1,6 +1,6 @@
 # WP Photo Directory Importer — Documentation
 
-Version 1.3.6 · Last reviewed 2026-08-16
+Version 1.3.9 · Last reviewed 2026-08-16
 
 This file contains three documents:
 
@@ -173,7 +173,7 @@ After testing, any unwanted photos can be removed from **Media > Library** the s
 
 # Troubleshooting Guide
 
-Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.6.
+Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.9.
 
 ## Problem: An Imported Photo's Title Does Not Match The Photo Directory
 
@@ -301,6 +301,24 @@ When none of these produce a URL, the photo has no thumbnail in the grid, and an
 2. Compare that structure against the four checks in `normalize_item()`.
 3. If the API has moved its image data to a new location, add a matching check to `normalize_item()`. This is the single function that maps upstream JSON into the `sizes`, `alt`, and `author` fields the rest of the plugin uses.
 4. If only some photos are affected, the issue is limited to those upstream records rather than the API shape. Import a different photo to confirm.
+
+## Problem: An Import Fails With "Source URL Is Not On A Trusted Host"
+
+### Cause
+
+`PDI_Importer::is_allowed_image_host()` requires an image's URL to be on `wordpress.org`, `wp.com`, or `w.org` (or a subdomain of any of them) before it's downloaded — a deliberate security check, not a bug. The Photo Directory's images are actually served from `pd.w.org`, WordPress.org's own short domain (the same family as `s.w.org`). The check only fires if a photo's image URL resolves to some other host entirely.
+
+### Solution
+
+1. The error message includes the actual rejected hostname — no need to inspect network requests to find it.
+2. If that host is a legitimate part of the Photo Directory's infrastructure, add it via the `pdi_allowed_image_hosts` filter:
+   ```php
+   add_filter( 'pdi_allowed_image_hosts', function ( $hosts ) {
+       $hosts[] = 'the-new-host.example';
+       return $hosts;
+   } );
+   ```
+3. Don't add a host you don't recognize or can't verify belongs to wordpress.org's own infrastructure — this check exists specifically to prevent a compromised or malicious API response from causing an arbitrary download.
 
 ## Problem: An Import Starts But Never Completes
 

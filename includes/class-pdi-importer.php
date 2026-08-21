@@ -44,6 +44,7 @@ class PDI_Importer {
 
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this.', 'pdi' ) ), 403 );
+			return;
 		}
 
 		$photo_id = isset( $_POST['photo_id'] ) ? absint( $_POST['photo_id'] ) : 0;
@@ -63,6 +64,7 @@ class PDI_Importer {
 
 		if ( ! $photo_id ) {
 			wp_send_json_error( array( 'message' => __( 'Missing photo ID.', 'pdi' ) ) );
+			return;
 		}
 
 		// If we've already imported this photo, just return the existing attachment
@@ -76,11 +78,13 @@ class PDI_Importer {
 		$photo = PDI_API::get_photo( $photo_id );
 		if ( is_wp_error( $photo ) ) {
 			wp_send_json_error( array( 'message' => $photo->get_error_message() ) );
+			return;
 		}
 
 		$attachment_id = self::import_photo( $photo, $size, $args );
 		if ( is_wp_error( $attachment_id ) ) {
 			wp_send_json_error( array( 'message' => $attachment_id->get_error_message() ) );
+			return;
 		}
 
 		wp_send_json_success( self::attachment_response( $attachment_id ) );
@@ -222,6 +226,25 @@ class PDI_Importer {
 			return new WP_Error( 'pdi_no_image', __( 'No downloadable image was found for this photo.', 'pdi' ) );
 		}
 
+		// Defense-in-depth: nothing a site visitor or lower-privileged user
+		// supplies can influence which host we ever talk to (search terms,
+		// filters, and photo IDs only ever become query args appended to
+		// our own hardcoded REMOTE_BASE/TAXONOMY_BASE constants) — but the
+		// image URL itself is data returned *by* that API, not something
+		// this plugin controls. Pinning it to an expected host means a
+		// compromised or malicious upstream response can't make this site
+		// download and store an attacker's file from an arbitrary server.
+		if ( ! self::is_allowed_image_host( $source_url ) ) {
+			return new WP_Error(
+				'pdi_untrusted_host',
+				sprintf(
+					/* translators: %s: the image URL's actual, rejected hostname */
+					__( 'This photo could not be imported because its source URL (host: %s) is not on a trusted host. Add it via the pdi_allowed_image_hosts filter if you recognize it as legitimate Photo Directory infrastructure.', 'pdi' ),
+					wp_parse_url( $source_url, PHP_URL_HOST )
+				)
+			);
+		}
+
 		$tmp_file = download_url( $source_url, 30 );
 		if ( is_wp_error( $tmp_file ) ) {
 			return $tmp_file;
@@ -320,6 +343,55 @@ class PDI_Importer {
 			}
 		}
 		return $best ? $best : reset( $sizes );
+	}
+
+	/**
+	 * Hosts sideloaded image URLs are allowed to come from. The Photo
+	 * Directory API is this plugin's sole source of these URLs, and this
+	 * plugin only ever talks to wordpress.org for that API — but a URL
+	 * *inside* an API response is still third-party-supplied data, not
+	 * something this plugin controls directly.
+	 *
+	 * Includes:
+	 * - `wp.com`, since wordpress.org properties commonly serve uploaded
+	 *   images through Automattic's Photon CDN (`i0.wp.com`, etc.).
+	 * - `w.org`, WordPress.org's own short domain (the same family as
+	 *   `s.w.org`, its well-known static-assets host) — the Photo
+	 *   Directory serves its images from `pd.w.org` specifically.
+	 *
+	 * @return string[] Lowercased allowed hostnames. A URL's host matches if
+	 *                   it equals one of these, or is a subdomain of one.
+	 */
+	private static function allowed_image_hosts() {
+		/**
+		 * Filters the hostnames sideloaded image URLs are allowed to come from.
+		 *
+		 * @param string[] $hosts Lowercased allowed hostnames.
+		 */
+		return apply_filters( 'pdi_allowed_image_hosts', array( 'wordpress.org', 'wp.com', 'w.org' ) );
+	}
+
+	/**
+	 * Whether a URL's host is on the allowed list for sideloading.
+	 *
+	 * @param string $url Candidate image URL.
+	 * @return bool
+	 */
+	private static function is_allowed_image_host( $url ) {
+		$host = wp_parse_url( $url, PHP_URL_HOST );
+		if ( ! $host ) {
+			return false;
+		}
+		$host = strtolower( $host );
+
+		foreach ( self::allowed_image_hosts() as $allowed ) {
+			$allowed = strtolower( $allowed );
+			if ( $host === $allowed || substr( $host, -( strlen( $allowed ) + 1 ) ) === '.' . $allowed ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

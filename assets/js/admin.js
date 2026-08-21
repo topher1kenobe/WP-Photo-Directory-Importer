@@ -12,8 +12,6 @@
 		Object.keys( attrs ).forEach( function ( k ) {
 			if ( 'class' === k ) {
 				e.className = attrs[ k ];
-			} else if ( 'html' === k ) {
-				e.innerHTML = attrs[ k ];
 			} else {
 				e.setAttribute( k, attrs[ k ] );
 			}
@@ -203,7 +201,7 @@
 				);
 
 				actions.appendChild(
-					el( 'a', { href: attachment.editUrl, target: '_blank', class: 'button button-small' }, [
+					el( 'a', { href: attachment.editUrl, target: '_blank', rel: 'noopener noreferrer', class: 'button button-small' }, [
 						document.createTextNode( S.strings.viewInLibrary ),
 					] )
 				);

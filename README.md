@@ -88,6 +88,28 @@ misbehaving, that function is the one place to look — it's easiest to
 diagnose by comparing its checks against a live response from
 `https://wordpress.org/photos/wp-json/wp/v2/photos?_embed=1`.
 
+## Security
+
+- Every AJAX endpoint (`pdi_search`, `pdi_terms`, `pdi_import`) requires
+  both a valid nonce and the `upload_files` capability, and none are
+  registered as `wp_ajax_nopriv_*` — logged-out visitors can't reach any
+  of it.
+- All outbound requests to the Photo Directory use hardcoded, HTTPS,
+  first-party constants (`PDI_API::REMOTE_BASE`, `::TAXONOMY_BASE`) as the
+  base URL; user input only ever becomes query-string values appended to
+  those, never the host being requested.
+- Before an image is sideloaded into the Media Library,
+  `PDI_Importer::is_allowed_image_host()` requires its URL's host to be
+  `wordpress.org`, `wp.com`, or `w.org` (or a subdomain of any of them —
+  the Photo Directory's images actually come from `pd.w.org`, WordPress.org's
+  own short domain, the same family as `s.w.org`). This guards specifically
+  against a compromised or malicious upstream API response — not against
+  user input, which can't reach this code path at all — since the plugin
+  otherwise trusts whatever image URL the API returns for a given photo.
+  If an import ever fails with "not on a trusted host," the error message
+  includes the actual rejected hostname; add it via
+  `pdi_allowed_image_hosts` if you recognize it as legitimate.
+
 ## Development
 
 This plugin follows the [WordPress PHP Coding
