@@ -2,9 +2,9 @@
 Contributors: ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci, michelleames
 Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
-Tested up to: 6.9
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.6
+Stable tag: 1.3.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,65 @@ Entry points:
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.9 =
+* Added `w.org` to the default trusted image hosts (`pdi_allowed_image_hosts`).
+  The Photo Directory serves its images from `pd.w.org` specifically —
+  `w.org` is WordPress.org's own short domain, the same family as
+  `s.w.org`, its well-known static-assets host. The 1.3.8 fix (adding
+  `wp.com` for Photon) turned out not to be where these images actually
+  live; this corrects it based on the real rejected host.
+
+= 1.3.8 =
+* **Fixed a regression from 1.3.7 that broke every import.** The trusted-host
+  check added in 1.3.7 only allowed `wordpress.org` (and its subdomains),
+  but the Photo Directory serves uploaded images through Automattic's
+  Photon CDN (`i0.wp.com`, `i1.wp.com`, etc.) rather than from
+  wordpress.org's own domain directly — so every single import was
+  rejected as "untrusted." `wp.com` (and its subdomains) is now included
+  in the default allowed hosts.
+* The "not on a trusted host" error message now includes the actual
+  rejected hostname, so a similar mismatch in the future is immediately
+  diagnosable without digging through network requests, and can be
+  resolved on the spot via the `pdi_allowed_image_hosts` filter.
+
+= 1.3.7 =
+Security review and hardening. No user-facing behavior changes; all four
+items below were fixed as defense-in-depth rather than in response to an
+exploited vulnerability.
+
+* **Sideloaded image URLs are now pinned to a trusted host.**
+  `PDI_Importer::import_photo()` downloads whichever image URL the Photo
+  Directory API returns for a photo; that URL is data returned *by* the
+  API, not something this plugin generates itself. Added
+  `is_allowed_image_host()`, checked before `download_url()` is ever
+  called, requiring the URL's host to be `wordpress.org` or a subdomain of
+  it (filterable via `pdi_allowed_image_hosts`). Nothing a site visitor or
+  lower-privileged user supplies can influence which host this plugin
+  talks to for search or photo lookups — those always go to the hardcoded
+  `REMOTE_BASE`/`TAXONOMY_BASE` constants — so this specifically guards
+  against a compromised or malicious upstream API response causing this
+  site to download and store a file from an attacker-controlled server.
+* **Removed an unused `innerHTML` code path.** `assets/js/admin.js`'s `el()`
+  helper had a dead `'html'` attribute branch (`e.innerHTML = attrs.html`)
+  that nothing in the codebase called, but that would become an XSS sink
+  the moment anything did. Removed it entirely.
+* **Added `rel="noopener noreferrer"`** to the "View in Media Library"
+  link in `assets/js/admin.js`, which opens in a new tab
+  (`target="_blank"`). Its destination is fully server-generated today, so
+  this wasn't exploitable, but it's standard, zero-cost protection against
+  reverse-tabnabbing regardless.
+* **Added explicit `return` statements after every `wp_send_json_error()`
+  call** in `class-pdi-api.php` (`ajax_search()`, `ajax_terms()`) and
+  `class-pdi-importer.php` (`ajax_import()`) that wasn't already the last
+  statement in its function. `wp_send_json_error()` calls `wp_die()`,
+  which WordPress's AJAX handling turns into an immediate `die()`, so
+  execution already halted in normal operation — this wasn't currently
+  exploitable. But code after those calls was relying on that implicit
+  behavior instead of stating it, which would fall through with
+  invalid/stale state (e.g. continuing with a photo ID of 0, or treating a
+  `WP_Error` object as an array) if `wp_die()`'s behavior were ever
+  filtered, as some testing harnesses deliberately do.
 
 = 1.3.6 =
 * Added a "View full" button to the "Photo Directory" tab inside the

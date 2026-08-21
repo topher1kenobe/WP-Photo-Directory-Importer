@@ -55,6 +55,7 @@ class PDI_API {
 
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this.', 'pdi' ) ), 403 );
+			return;
 		}
 
 		$search = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
@@ -71,6 +72,7 @@ class PDI_API {
 
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( array( 'message' => $result->get_error_message() ), 500 );
+			return;
 		}
 
 		// Resolved outside search() on purpose: the search payload is cached
@@ -92,6 +94,7 @@ class PDI_API {
 
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this.', 'pdi' ) ), 403 );
+			return;
 		}
 
 		wp_send_json_success( self::get_filter_terms() );
