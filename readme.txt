@@ -4,7 +4,7 @@ Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.9
+Stable tag: 1.3.10
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -58,6 +58,10 @@ That button is added next to Add Media via the `media_buttons` hook, which only 
 
 Yes. Both the Media > Photo Directory browse screen and the media picker tab let you choose Full, Large, or Medium before importing.
 
+= Can imported photos be converted to WebP or AVIF? =
+
+Yes, if your server's image editor supports it. Go to **Settings > Photo Directory** to choose — WebP is used automatically whenever your server can produce it. If it can't, the page says so plainly and photos keep their original format.
+
 = Where does the plugin store which photos I've already imported? =
 
 Each imported attachment gets a `_pdi_source_id` meta value matching its ID on the Photo Directory. Importing the same photo again returns the existing attachment instead of downloading a duplicate.
@@ -92,6 +96,12 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
 * Imports are deduplicated: each imported attachment gets a
   `_pdi_source_id` meta value, and re-importing the same photo returns the
   existing attachment instead of downloading it again.
+* Image format conversion (Settings > Photo Directory,
+  `PDI_Settings::get_format()`) happens in
+  `PDI_Importer::maybe_convert_image()`, right after download and before
+  sideloading. It re-checks `wp_image_editor_supports()` at import time
+  rather than trusting the stored setting outright, and falls back to the
+  original file on any failure.
 * Search results are cached for 5 minutes via transients to avoid hammering
   the upstream API on repeat searches.
 * All photos on the Photo Directory are released CC0 (no attribution
@@ -100,6 +110,25 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.10 =
+* Added a **Settings > Photo Directory** page. If this server's image
+  editor (GD or Imagick, whichever core picked) can actually produce
+  WebP — checked live via `wp_image_editor_supports()`, not assumed from
+  PHP version or extension presence — a format picker appears: keep the
+  original format, convert to WebP, or convert to AVIF (the latter only
+  offered when supported too). WebP is the default whenever it's
+  available. If WebP isn't supported, the page simply says so and no
+  photos are converted, same as before this release.
+* Conversion happens right after download, before the file is sideloaded,
+  so every generated thumbnail/medium/large sub-size is produced from the
+  converted file directly rather than converted a second time after the
+  fact.
+* A conversion failure for any reason falls back to importing the
+  original file untouched — this is meant to be a nice-to-have, never
+  something that can turn a failed conversion into a failed import.
+* The "Import settings" link in the Media > Photo Directory page header,
+  present but hidden since 1.3.4, now points at the new settings page.
 
 = 1.3.9 =
 * Added `w.org` to the default trusted image hosts (`pdi_allowed_image_hosts`).

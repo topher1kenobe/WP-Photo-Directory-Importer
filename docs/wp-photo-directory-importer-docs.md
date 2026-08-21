@@ -1,6 +1,6 @@
 # WP Photo Directory Importer — Documentation
 
-Version 1.3.9 · Last reviewed 2026-08-16
+Version 1.3.10 · Last reviewed 2026-08-16
 
 This file contains three documents:
 
@@ -103,6 +103,8 @@ The caption is written only when the Photo Directory supplies an author name and
 
 Some photos on the Photo Directory carry only a generic placeholder title, because the original uploader never set a real one. The plugin recognizes those placeholders and builds a title from the photo's descriptive sentence instead, shortened at a word boundary. When there is no usable description either, it falls back to the photo's URL slug, and then to "Untitled photo". A generated title is a best-effort guess, so it is worth a glance before publishing.
 
+If **Settings > Photo Directory** has an image format other than "Keep original format" selected, the photo's file is converted to that format immediately after download, before it's added to the Media Library — so every generated thumbnail size is produced from the converted file, not the original. A conversion failure for any reason falls back to importing the original file untouched.
+
 The plugin also saves hidden values on each attachment so the original photo can be traced later:
 
 | Stored Value | What It Holds |
@@ -173,7 +175,7 @@ After testing, any unwanted photos can be removed from **Media > Library** the s
 
 # Troubleshooting Guide
 
-Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.9.
+Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.10.
 
 ## Problem: An Imported Photo's Title Does Not Match The Photo Directory
 
@@ -319,6 +321,18 @@ When none of these produce a URL, the photo has no thumbnail in the grid, and an
    } );
    ```
 3. Don't add a host you don't recognize or can't verify belongs to wordpress.org's own infrastructure — this check exists specifically to prevent a compromised or malicious API response from causing an arbitrary download.
+
+## Problem: Settings > Photo Directory Shows No Format Picker
+
+### Cause
+
+This is expected on a server whose image editor (GD or Imagick, whichever core registered) can't produce WebP — checked live via `wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) )`, not assumed from PHP version. `PDI_Settings::supported_formats()` deliberately gates on WebP specifically: if it isn't available, no picker is shown at all (not even for AVIF alone), and imported photos keep their original format, same as before this feature existed.
+
+### Solution
+
+1. Confirm the page says WebP conversion isn't available, rather than showing an empty or broken form.
+2. This usually means an older GD build without WebP support compiled in, or an Imagick build linked against an ImageMagick without WebP delegate support. Check `phpinfo()` for GD's "WebP Support" line, or `Imagick::queryFormats('WEBP')` for Imagick.
+3. Upgrading the server's image library (or switching which one WordPress uses, if both are installed) is an infrastructure change outside the plugin's control — there's no setting in the plugin itself to force WebP support that isn't really there.
 
 ## Problem: An Import Starts But Never Completes
 

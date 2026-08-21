@@ -45,6 +45,9 @@ class PDI_Plugin {
 		add_action( 'enqueue_block_editor_assets', array( $this, 'enqueue_block_editor_assets' ) );
 		add_action( 'media_buttons', array( $this, 'media_button' ), 20 );
 
+		add_action( 'admin_menu', array( 'PDI_Settings', 'register_page' ) );
+		add_action( 'admin_init', array( 'PDI_Settings', 'register_setting' ) );
+
 		add_action( 'wp_ajax_pdi_search', array( 'PDI_API', 'ajax_search' ) );
 		add_action( 'wp_ajax_pdi_terms', array( 'PDI_API', 'ajax_terms' ) );
 		add_action( 'wp_ajax_pdi_import', array( 'PDI_Importer', 'ajax_import' ) );
@@ -129,12 +132,14 @@ class PDI_Plugin {
 	private function browser_settings() {
 		/**
 		 * Filters the URL of the "Import settings" link in the page header.
-		 * Empty by default, which hides the link, since the plugin has no
-		 * settings panel yet.
+		 * Points at Settings > Photo Directory by default.
 		 *
 		 * @param string $url Settings panel URL.
 		 */
-		$settings_url = apply_filters( 'pdi_settings_url', '' );
+		$settings_url = apply_filters(
+			'pdi_settings_url',
+			admin_url( 'options-general.php?page=' . PDI_Settings::PAGE_SLUG )
+		);
 
 		return array(
 			'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
