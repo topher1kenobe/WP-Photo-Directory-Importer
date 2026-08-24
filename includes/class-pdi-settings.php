@@ -97,6 +97,8 @@ class PDI_Settings {
 	}
 
 	/**
+	 * The format to fall back to when nothing has been saved yet.
+	 *
 	 * @return string 'webp' when this server can produce it, 'original' otherwise.
 	 */
 	public static function default_format() {
@@ -105,6 +107,8 @@ class PDI_Settings {
 	}
 
 	/**
+	 * Sanitize the saved format option.
+	 *
 	 * @param string $value Raw posted value.
 	 * @return string A key guaranteed to exist in supported_formats().
 	 */

@@ -92,7 +92,7 @@ class PDI_Plugin {
 			$usernames
 		);
 
-		$plugins[ $basename ]['Author']    = implode( ', ', $links );
+		$plugins[ $basename ]['Author'] = implode( ', ', $links );
 		// Emptied so the list table doesn't also wrap these already-linked
 		// names in one more outer <a> pointing at Author URI.
 		$plugins[ $basename ]['AuthorURI'] = '';
