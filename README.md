@@ -141,13 +141,18 @@ diagnose by comparing its checks against a live response from
 
 This plugin follows the [WordPress PHP Coding
 Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/).
-A ruleset is included at `phpcs.xml.dist`. To check the code:
+A ruleset is included at `phpcs.xml.dist`, and the toolchain it needs is
+declared in `composer.json`. To check the code:
 
 ```bash
-composer require --dev wp-coding-standards/wpcs
-composer require --dev dealerdirect/phpcodesniffer-composer-installer
-vendor/bin/phpcs
+composer install
+composer lint
 ```
+
+The pinned version matters: WPCS 3.x only works with PHP_CodeSniffer 3.x. A
+globally installed PHPCS 4.x reports `Referenced sniff "WordPress" does not
+exist` instead of a version error, so run the copy in `vendor/bin` rather
+than a system-wide one.
 
 ### Ideas for contributions
 
