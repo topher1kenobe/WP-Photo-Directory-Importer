@@ -4,7 +4,7 @@ Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.12
+Stable tag: 1.3.15
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -110,6 +110,34 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.15 =
+* Fixed incorrect plural handling in the browse screen and media-picker
+  tab: several "N selected"/"N imported" strings picked between exactly
+  two hardcoded forms using a `count === 1` check in JavaScript — correct
+  for English, but impossible for a translator to adapt to a language
+  with three, four, or six plural forms (Russian, Polish, and Arabic,
+  among others). Now uses `wp.i18n._n()`, which consults the current
+  locale's real plural-forms rule instead. Along the way this also fixed
+  a visible English-language bug: the single-photo "quick import" success
+  message was using the plural template with the count hardcoded to 1,
+  producing "1 photos imported."
+* Added a bundled `.pot` file (`languages/wp-photo-directory-importer.pot`)
+  and a `Domain Path` header, so translators have a starting point instead
+  of needing to generate one themselves before they can begin.
+
+= 1.3.14 =
+* Fixed a Plugin Check error: "Mismatched text domain. Expected
+  'wp-photo-directory-importer' but got 'pdi'." WordPress.org requires the
+  `Text Domain` header, and every translation function's domain argument,
+  to exactly match the plugin's own folder/slug. Changed the domain from
+  `pdi` to `wp-photo-directory-importer` everywhere: the plugin header
+  and all translation function calls across every PHP and JS file.
+  Internal-only identifiers that happen to start with `pdi_` (hooks,
+  filters, nonces, meta keys, transient keys) were deliberately left
+  untouched, since those aren't text domains.
+* Reformatted a handful of PHP statements that became excessively long
+  purely from the domain string's length.
 
 = 1.3.12 =
 * On the Plugins list page, each contributor's name now links to their

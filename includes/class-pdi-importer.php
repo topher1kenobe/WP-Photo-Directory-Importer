@@ -43,7 +43,10 @@ class PDI_Importer {
 		check_ajax_referer( 'pdi_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this.', 'pdi' ) ), 403 );
+			wp_send_json_error(
+				array( 'message' => __( 'You do not have permission to do this.', 'wp-photo-directory-importer' ) ),
+				403
+			);
 			return;
 		}
 
@@ -63,7 +66,7 @@ class PDI_Importer {
 		);
 
 		if ( ! $photo_id ) {
-			wp_send_json_error( array( 'message' => __( 'Missing photo ID.', 'pdi' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Missing photo ID.', 'wp-photo-directory-importer' ) ) );
 			return;
 		}
 
@@ -210,7 +213,10 @@ class PDI_Importer {
 		);
 
 		if ( empty( $photo['sizes'] ) ) {
-			return new WP_Error( 'pdi_no_image', __( 'No downloadable image was found for this photo.', 'pdi' ) );
+			return new WP_Error(
+				'pdi_no_image',
+				__( 'No downloadable image was found for this photo.', 'wp-photo-directory-importer' )
+			);
 		}
 
 		if ( ! empty( $photo['sizes'][ $size ]['url'] ) ) {
@@ -223,7 +229,10 @@ class PDI_Importer {
 		}
 
 		if ( empty( $source_url ) ) {
-			return new WP_Error( 'pdi_no_image', __( 'No downloadable image was found for this photo.', 'pdi' ) );
+			return new WP_Error(
+				'pdi_no_image',
+				__( 'No downloadable image was found for this photo.', 'wp-photo-directory-importer' )
+			);
 		}
 
 		// Defense-in-depth: nothing a site visitor or lower-privileged user
@@ -239,7 +248,11 @@ class PDI_Importer {
 				'pdi_untrusted_host',
 				sprintf(
 					/* translators: %s: the image URL's actual, rejected hostname */
-					__( 'This photo could not be imported because its source URL (host: %s) is not on a trusted host. Add it via the pdi_allowed_image_hosts filter if you recognize it as legitimate Photo Directory infrastructure.', 'pdi' ),
+					__(
+						// phpcs:ignore Generic.Files.LineLength.TooLong -- deliberately detailed message; splitting the string via concatenation would complicate translation for little benefit.
+						'This photo could not be imported because its source URL (host: %s) is not on a trusted host. Add it via the pdi_allowed_image_hosts filter if you recognize it as legitimate Photo Directory infrastructure.',
+						'wp-photo-directory-importer'
+					),
 					wp_parse_url( $source_url, PHP_URL_HOST )
 				)
 			);
@@ -319,7 +332,7 @@ class PDI_Importer {
 
 		$credit = sprintf(
 			/* translators: %s: photographer's display name */
-			__( 'Photo by %s, via the WordPress Photo Directory.', 'pdi' ),
+			__( 'Photo by %s, via the WordPress Photo Directory.', 'wp-photo-directory-importer' ),
 			$photo['author']
 		);
 
