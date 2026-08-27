@@ -2,7 +2,7 @@
 /**
  * Core plugin bootstrap class.
  *
- * @package WP_Photo_Directory_Importer
+ * @package Photo_Directory_Importer
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -114,7 +114,7 @@ class PDI_Plugin {
 			sprintf(
 				'<a href="%s">%s</a>',
 				esc_url( admin_url( 'options-general.php?page=' . PDI_Settings::PAGE_SLUG ) ),
-				esc_html__( 'Settings', 'wp-photo-directory-importer' )
+				esc_html__( 'Settings', 'photo-directory-importer' )
 			)
 		);
 
@@ -144,7 +144,7 @@ class PDI_Plugin {
 			PDI_VERSION,
 			true
 		);
-		wp_set_script_translations( 'pdi-photo-browser', 'wp-photo-directory-importer', PDI_PLUGIN_DIR . 'languages' );
+		wp_set_script_translations( 'pdi-photo-browser', 'photo-directory-importer', PDI_PLUGIN_DIR . 'languages' );
 
 		wp_localize_script( 'pdi-photo-browser', 'PDI_Browser', $this->browser_settings() );
 
@@ -164,7 +164,7 @@ class PDI_Plugin {
 			PDI_VERSION,
 			true
 		);
-		wp_set_script_translations( 'pdi-media-modal', 'wp-photo-directory-importer', PDI_PLUGIN_DIR . 'languages' );
+		wp_set_script_translations( 'pdi-media-modal', 'photo-directory-importer', PDI_PLUGIN_DIR . 'languages' );
 
 		wp_localize_script( 'pdi-media-modal', 'PDI_Modal', $this->modal_settings() );
 
@@ -177,18 +177,18 @@ class PDI_Plugin {
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'pdi_nonce' ),
 				'strings' => array(
-					'search'        => __( 'Search photos…', 'wp-photo-directory-importer' ),
-					'import'        => __( 'Import', 'wp-photo-directory-importer' ),
-					'importing'     => __( 'Importing…', 'wp-photo-directory-importer' ),
-					'imported'      => __( 'Imported', 'wp-photo-directory-importer' ),
-					'selected'      => __( 'Selected', 'wp-photo-directory-importer' ),
-					'loadMore'      => __( 'Load more', 'wp-photo-directory-importer' ),
-					'noResults'     => __( 'No photos found.', 'wp-photo-directory-importer' ),
-					'error'         => __( 'Something went wrong. Please try again.', 'wp-photo-directory-importer' ),
-					'useFeatured'   => __( 'Use as featured image', 'wp-photo-directory-importer' ),
-					'viewInLibrary' => __( 'View in Media Library', 'wp-photo-directory-importer' ),
-					'close'         => __( 'Close', 'wp-photo-directory-importer' ),
-					'tabLabel'      => __( 'Photo Directory', 'wp-photo-directory-importer' ),
+					'search'        => __( 'Search photos…', 'photo-directory-importer' ),
+					'import'        => __( 'Import', 'photo-directory-importer' ),
+					'importing'     => __( 'Importing…', 'photo-directory-importer' ),
+					'imported'      => __( 'Imported', 'photo-directory-importer' ),
+					'selected'      => __( 'Selected', 'photo-directory-importer' ),
+					'loadMore'      => __( 'Load more', 'photo-directory-importer' ),
+					'noResults'     => __( 'No photos found.', 'photo-directory-importer' ),
+					'error'         => __( 'Something went wrong. Please try again.', 'photo-directory-importer' ),
+					'useFeatured'   => __( 'Use as featured image', 'photo-directory-importer' ),
+					'viewInLibrary' => __( 'View in Media Library', 'photo-directory-importer' ),
+					'close'         => __( 'Close', 'photo-directory-importer' ),
+					'tabLabel'      => __( 'Photo Directory', 'photo-directory-importer' ),
 				),
 			)
 		);
@@ -222,91 +222,91 @@ class PDI_Plugin {
 			'sizes'       => array(
 				array(
 					'value' => 'full',
-					'label' => __( 'Full size (up to 2560px)', 'wp-photo-directory-importer' ),
+					'label' => __( 'Full size (up to 2560px)', 'photo-directory-importer' ),
 				),
 				array(
 					'value' => 'large',
-					'label' => __( 'Large (1024px)', 'wp-photo-directory-importer' ),
+					'label' => __( 'Large (1024px)', 'photo-directory-importer' ),
 				),
 				array(
 					'value' => 'medium',
-					'label' => __( 'Medium (600px)', 'wp-photo-directory-importer' ),
+					'label' => __( 'Medium (600px)', 'photo-directory-importer' ),
 				),
 			),
 			'strings'     => array(
-				'title'               => __( 'Photo Directory', 'wp-photo-directory-importer' ),
-				'description'         => __( 'Free, CC0-licensed photos contributed to WordPress.org. Import any photo straight into your Media Library. No attribution required, credit optional.', 'wp-photo-directory-importer' ),
-				'importSettings'      => __( 'Import settings', 'wp-photo-directory-importer' ),
-				'searchLabel'         => __( 'Search photos', 'wp-photo-directory-importer' ),
-				'searchPlaceholder'   => __( 'Search photos by subject, place or tag', 'wp-photo-directory-importer' ),
-				'search'              => __( 'Search', 'wp-photo-directory-importer' ),
-				'allCategories'       => __( 'All categories', 'wp-photo-directory-importer' ),
-				'anyOrientation'      => __( 'Any orientation', 'wp-photo-directory-importer' ),
-				'colorLabel'          => __( 'Color', 'wp-photo-directory-importer' ),
-				'anyColor'            => __( 'Any color', 'wp-photo-directory-importer' ),
+				'title'               => __( 'Photo Directory', 'photo-directory-importer' ),
+				'description'         => __( 'Free, CC0-licensed photos contributed to WordPress.org. Import any photo straight into your Media Library. No attribution required, credit optional.', 'photo-directory-importer' ),
+				'importSettings'      => __( 'Import settings', 'photo-directory-importer' ),
+				'searchLabel'         => __( 'Search photos', 'photo-directory-importer' ),
+				'searchPlaceholder'   => __( 'Search photos by subject, place or tag', 'photo-directory-importer' ),
+				'search'              => __( 'Search', 'photo-directory-importer' ),
+				'allCategories'       => __( 'All categories', 'photo-directory-importer' ),
+				'anyOrientation'      => __( 'Any orientation', 'photo-directory-importer' ),
+				'colorLabel'          => __( 'Color', 'photo-directory-importer' ),
+				'anyColor'            => __( 'Any color', 'photo-directory-importer' ),
 				/* translators: %s: colour name, e.g. "Green" */
-				'colorSwatch'         => __( 'Filter by %s', 'wp-photo-directory-importer' ),
-				'sortLabel'           => __( 'Sort results', 'wp-photo-directory-importer' ),
-				'sortRelevance'       => __( 'Most relevant', 'wp-photo-directory-importer' ),
-				'sortNewest'          => __( 'Newest', 'wp-photo-directory-importer' ),
+				'colorSwatch'         => __( 'Filter by %s', 'photo-directory-importer' ),
+				'sortLabel'           => __( 'Sort results', 'photo-directory-importer' ),
+				'sortRelevance'       => __( 'Most relevant', 'photo-directory-importer' ),
+				'sortNewest'          => __( 'Newest', 'photo-directory-importer' ),
 				/* translators: %s: formatted number of photos */
-				'photoCount'          => __( '%s photos', 'wp-photo-directory-importer' ),
+				'photoCount'          => __( '%s photos', 'photo-directory-importer' ),
 				/* translators: 1: formatted number of photos, 2: search term */
-				'photoCountFor'       => __( '%1$s photos for “%2$s”', 'wp-photo-directory-importer' ),
-				'filtersLabel'        => __( 'Filters', 'wp-photo-directory-importer' ),
+				'photoCountFor'       => __( '%1$s photos for “%2$s”', 'photo-directory-importer' ),
+				'filtersLabel'        => __( 'Filters', 'photo-directory-importer' ),
 				/* translators: %s: name of the filter being removed */
-				'removeFilter'        => __( 'Remove filter: %s', 'wp-photo-directory-importer' ),
-				'clearAll'            => __( 'Clear all', 'wp-photo-directory-importer' ),
+				'removeFilter'        => __( 'Remove filter: %s', 'photo-directory-importer' ),
+				'clearAll'            => __( 'Clear all', 'photo-directory-importer' ),
 
-				'recentlyAdded'       => __( 'Recently added', 'wp-photo-directory-importer' ),
+				'recentlyAdded'       => __( 'Recently added', 'photo-directory-importer' ),
 				/* translators: %s: search term */
-				'resultsFor'          => __( 'Results for “%s”', 'wp-photo-directory-importer' ),
-				'inLibrary'           => __( 'In library', 'wp-photo-directory-importer' ),
-				'import'              => __( 'Import', 'wp-photo-directory-importer' ),
-				'importing'           => __( 'Importing…', 'wp-photo-directory-importer' ),
-				'viewInLibrary'       => __( 'View in library', 'wp-photo-directory-importer' ),
-				'viewFull'            => __( 'View full', 'wp-photo-directory-importer' ),
-				'close'               => __( 'Close', 'wp-photo-directory-importer' ),
-				'loadMore'            => __( 'Load more photos', 'wp-photo-directory-importer' ),
-				'loading'             => __( 'Loading…', 'wp-photo-directory-importer' ),
+				'resultsFor'          => __( 'Results for “%s”', 'photo-directory-importer' ),
+				'inLibrary'           => __( 'In library', 'photo-directory-importer' ),
+				'import'              => __( 'Import', 'photo-directory-importer' ),
+				'importing'           => __( 'Importing…', 'photo-directory-importer' ),
+				'viewInLibrary'       => __( 'View in library', 'photo-directory-importer' ),
+				'viewFull'            => __( 'View full', 'photo-directory-importer' ),
+				'close'               => __( 'Close', 'photo-directory-importer' ),
+				'loadMore'            => __( 'Load more photos', 'photo-directory-importer' ),
+				'loading'             => __( 'Loading…', 'photo-directory-importer' ),
 				/* translators: 1: number of photos shown so far, 2: total number available */
-				'showingCount'        => __( 'Showing %1$s of %2$s', 'wp-photo-directory-importer' ),
+				'showingCount'        => __( 'Showing %1$s of %2$s', 'photo-directory-importer' ),
 
-				'trayLabel'           => __( 'Selected photos', 'wp-photo-directory-importer' ),
+				'trayLabel'           => __( 'Selected photos', 'photo-directory-importer' ),
 				/* translators: %s: photo title */
-				'selectPhoto'         => __( 'Select %s', 'wp-photo-directory-importer' ),
+				'selectPhoto'         => __( 'Select %s', 'photo-directory-importer' ),
 				/* translators: %s: photo title */
-				'deselectPhoto'       => __( 'Deselect %s', 'wp-photo-directory-importer' ),
-				'clearSelection'      => __( 'Clear selection', 'wp-photo-directory-importer' ),
-				'hintSelect'          => __( 'Click a photo to select it, or import one on its own', 'wp-photo-directory-importer' ),
-				'importSize'          => __( 'Import size', 'wp-photo-directory-importer' ),
-				'addCredit'           => __( 'Add photographer credit to caption', 'wp-photo-directory-importer' ),
-				'editDetails'         => __( 'Edit alt text & captions', 'wp-photo-directory-importer' ),
-				'hideDetails'         => __( 'Hide details', 'wp-photo-directory-importer' ),
-				'fieldTitle'          => __( 'Title', 'wp-photo-directory-importer' ),
-				'fieldAlt'            => __( 'Alt text', 'wp-photo-directory-importer' ),
-				'fieldAltPlaceholder' => __( 'describe the photo', 'wp-photo-directory-importer' ),
-				'fieldCaption'        => __( 'Caption', 'wp-photo-directory-importer' ),
+				'deselectPhoto'       => __( 'Deselect %s', 'photo-directory-importer' ),
+				'clearSelection'      => __( 'Clear selection', 'photo-directory-importer' ),
+				'hintSelect'          => __( 'Click a photo to select it, or import one on its own', 'photo-directory-importer' ),
+				'importSize'          => __( 'Import size', 'photo-directory-importer' ),
+				'addCredit'           => __( 'Add photographer credit to caption', 'photo-directory-importer' ),
+				'editDetails'         => __( 'Edit alt text & captions', 'photo-directory-importer' ),
+				'hideDetails'         => __( 'Hide details', 'photo-directory-importer' ),
+				'fieldTitle'          => __( 'Title', 'photo-directory-importer' ),
+				'fieldAlt'            => __( 'Alt text', 'photo-directory-importer' ),
+				'fieldAltPlaceholder' => __( 'describe the photo', 'photo-directory-importer' ),
+				'fieldCaption'        => __( 'Caption', 'photo-directory-importer' ),
 				/* translators: 1: current photo number, 2: total photos, 3: photo title */
-				'importProgress'      => __( 'Importing %1$s of %2$s: %3$s', 'wp-photo-directory-importer' ),
-				'cancel'              => __( 'Cancel', 'wp-photo-directory-importer' ),
-				'viewInMediaLibrary'  => __( 'View in Media Library', 'wp-photo-directory-importer' ),
-				'importedBody'        => __( 'Alt text and captions were saved with each file.', 'wp-photo-directory-importer' ),
+				'importProgress'      => __( 'Importing %1$s of %2$s: %3$s', 'photo-directory-importer' ),
+				'cancel'              => __( 'Cancel', 'photo-directory-importer' ),
+				'viewInMediaLibrary'  => __( 'View in Media Library', 'photo-directory-importer' ),
+				'importedBody'        => __( 'Alt text and captions were saved with each file.', 'photo-directory-importer' ),
 				/* translators: 1: number imported, 2: number that failed */
-				'importedPartial'     => __( '%1$s imported, %2$s could not be imported.', 'wp-photo-directory-importer' ),
-				'importedPartialBody' => __( 'The photos that failed are still selected, so you can try them again.', 'wp-photo-directory-importer' ),
+				'importedPartial'     => __( '%1$s imported, %2$s could not be imported.', 'photo-directory-importer' ),
+				'importedPartialBody' => __( 'The photos that failed are still selected, so you can try them again.', 'photo-directory-importer' ),
 
-				'importFailed'        => __( 'That photo could not be imported.', 'wp-photo-directory-importer' ),
-				'alreadyImported'     => __( 'That photo is already in your Media Library.', 'wp-photo-directory-importer' ),
-				'alreadyImportedBody' => __( 'It was imported earlier, so nothing was downloaded again.', 'wp-photo-directory-importer' ),
+				'importFailed'        => __( 'That photo could not be imported.', 'photo-directory-importer' ),
+				'alreadyImported'     => __( 'That photo is already in your Media Library.', 'photo-directory-importer' ),
+				'alreadyImportedBody' => __( 'It was imported earlier, so nothing was downloaded again.', 'photo-directory-importer' ),
 
 				/* translators: %s: search term */
-				'emptyTitle'          => __( 'No photos match “%s”', 'wp-photo-directory-importer' ),
-				'emptyTitleFiltered'  => __( 'No photos match these filters', 'wp-photo-directory-importer' ),
-				'emptyBody'           => __( 'Narrow searches often come back empty. Try a broader term, or drop a filter.', 'wp-photo-directory-importer' ),
-				'errorTitle'          => __( 'Couldn’t reach WordPress.org.', 'wp-photo-directory-importer' ),
-				'tryAgain'            => __( 'Try again', 'wp-photo-directory-importer' ),
-				'error'               => __( 'The Photo Directory API didn’t respond. Your Media Library is unaffected.', 'wp-photo-directory-importer' ),
+				'emptyTitle'          => __( 'No photos match “%s”', 'photo-directory-importer' ),
+				'emptyTitleFiltered'  => __( 'No photos match these filters', 'photo-directory-importer' ),
+				'emptyBody'           => __( 'Narrow searches often come back empty. Try a broader term, or drop a filter.', 'photo-directory-importer' ),
+				'errorTitle'          => __( 'Couldn’t reach WordPress.org.', 'photo-directory-importer' ),
+				'tryAgain'            => __( 'Try again', 'photo-directory-importer' ),
+				'error'               => __( 'The Photo Directory API didn’t respond. Your Media Library is unaffected.', 'photo-directory-importer' ),
 			),
 		);
 	}
@@ -327,40 +327,40 @@ class PDI_Plugin {
 			'nonce'   => $browser['nonce'],
 			'sizes'   => $browser['sizes'],
 			'strings' => array(
-				'tabLabel'          => __( 'Photo Directory', 'wp-photo-directory-importer' ),
-				'searchPlaceholder' => __( 'Search photos', 'wp-photo-directory-importer' ),
-				'searchLabel'       => __( 'Search photos', 'wp-photo-directory-importer' ),
-				'allCategories'     => __( 'All categories', 'wp-photo-directory-importer' ),
-				'anyOrientation'    => __( 'Any orientation', 'wp-photo-directory-importer' ),
-				'sortLabel'         => __( 'Sort results', 'wp-photo-directory-importer' ),
-				'sortRelevance'     => __( 'Most relevant', 'wp-photo-directory-importer' ),
-				'sortNewest'        => __( 'Newest', 'wp-photo-directory-importer' ),
+				'tabLabel'          => __( 'Photo Directory', 'photo-directory-importer' ),
+				'searchPlaceholder' => __( 'Search photos', 'photo-directory-importer' ),
+				'searchLabel'       => __( 'Search photos', 'photo-directory-importer' ),
+				'allCategories'     => __( 'All categories', 'photo-directory-importer' ),
+				'anyOrientation'    => __( 'Any orientation', 'photo-directory-importer' ),
+				'sortLabel'         => __( 'Sort results', 'photo-directory-importer' ),
+				'sortRelevance'     => __( 'Most relevant', 'photo-directory-importer' ),
+				'sortNewest'        => __( 'Newest', 'photo-directory-importer' ),
 				/* translators: %s: photo title */
-				'selectPhoto'       => __( 'Select %s', 'wp-photo-directory-importer' ),
-				'inLibrary'         => __( 'In library', 'wp-photo-directory-importer' ),
-				'loading'           => __( 'Loading…', 'wp-photo-directory-importer' ),
-				'loadMore'          => __( 'Load more photos', 'wp-photo-directory-importer' ),
-				'noResults'         => __( 'No photos found. Try a broader term, or drop a filter.', 'wp-photo-directory-importer' ),
-				'error'             => __( 'The Photo Directory API didn’t respond. Your Media Library is unaffected.', 'wp-photo-directory-importer' ),
+				'selectPhoto'       => __( 'Select %s', 'photo-directory-importer' ),
+				'inLibrary'         => __( 'In library', 'photo-directory-importer' ),
+				'loading'           => __( 'Loading…', 'photo-directory-importer' ),
+				'loadMore'          => __( 'Load more photos', 'photo-directory-importer' ),
+				'noResults'         => __( 'No photos found. Try a broader term, or drop a filter.', 'photo-directory-importer' ),
+				'error'             => __( 'The Photo Directory API didn’t respond. Your Media Library is unaffected.', 'photo-directory-importer' ),
 
-				'detailsLabel'      => __( 'Photo details', 'wp-photo-directory-importer' ),
-				'detailsEmpty'      => __( 'Select a photo to see its details.', 'wp-photo-directory-importer' ),
+				'detailsLabel'      => __( 'Photo details', 'photo-directory-importer' ),
+				'detailsEmpty'      => __( 'Select a photo to see its details.', 'photo-directory-importer' ),
 				/* translators: %s: photographer's display name */
-				'byLine'            => __( 'By %s · CC0', 'wp-photo-directory-importer' ),
-				'fieldTitle'        => __( 'Title', 'wp-photo-directory-importer' ),
-				'fieldAlt'          => __( 'Alt text', 'wp-photo-directory-importer' ),
-				'fieldAltHint'      => __( 'describe the photo', 'wp-photo-directory-importer' ),
-				'fieldCaption'      => __( 'Caption', 'wp-photo-directory-importer' ),
-				'importSize'        => __( 'Import size', 'wp-photo-directory-importer' ),
+				'byLine'            => __( 'By %s · CC0', 'photo-directory-importer' ),
+				'fieldTitle'        => __( 'Title', 'photo-directory-importer' ),
+				'fieldAlt'          => __( 'Alt text', 'photo-directory-importer' ),
+				'fieldAltHint'      => __( 'describe the photo', 'photo-directory-importer' ),
+				'fieldCaption'      => __( 'Caption', 'photo-directory-importer' ),
+				'importSize'        => __( 'Import size', 'photo-directory-importer' ),
 
-				'nothingSelected'   => __( 'No photos selected', 'wp-photo-directory-importer' ),
-				'importOnly'        => __( 'Import only', 'wp-photo-directory-importer' ),
-				'insertIntoPost'    => __( 'Insert into post', 'wp-photo-directory-importer' ),
+				'nothingSelected'   => __( 'No photos selected', 'photo-directory-importer' ),
+				'importOnly'        => __( 'Import only', 'photo-directory-importer' ),
+				'insertIntoPost'    => __( 'Insert into post', 'photo-directory-importer' ),
 				/* translators: 1: current photo number, 2: total photos */
-				'importingProgress' => __( 'Importing %1$s of %2$s…', 'wp-photo-directory-importer' ),
-				'importFailed'      => __( 'Some photos could not be imported.', 'wp-photo-directory-importer' ),
-				'viewFull'          => __( 'View full', 'wp-photo-directory-importer' ),
-				'close'             => __( 'Close', 'wp-photo-directory-importer' ),
+				'importingProgress' => __( 'Importing %1$s of %2$s…', 'photo-directory-importer' ),
+				'importFailed'      => __( 'Some photos could not be imported.', 'photo-directory-importer' ),
+				'viewFull'          => __( 'View full', 'photo-directory-importer' ),
+				'close'             => __( 'Close', 'photo-directory-importer' ),
 			),
 		);
 	}
@@ -370,8 +370,8 @@ class PDI_Plugin {
 	 */
 	public function register_admin_page() {
 		add_media_page(
-			__( 'Photo Directory', 'wp-photo-directory-importer' ),
-			__( 'Photo Directory', 'wp-photo-directory-importer' ),
+			__( 'Photo Directory', 'photo-directory-importer' ),
+			__( 'Photo Directory', 'photo-directory-importer' ),
 			'upload_files',
 			'pdi-photo-directory',
 			array( $this, 'render_admin_page' )
@@ -440,7 +440,7 @@ class PDI_Plugin {
 		printf(
 			' <button type="button" class="button pdi-open-modal" data-editor="%s"><span class="dashicons dashicons-camera" style="vertical-align:text-bottom;"></span> %s</button>',
 			esc_attr( $editor_id ),
-			esc_html__( 'Photo Directory', 'wp-photo-directory-importer' )
+			esc_html__( 'Photo Directory', 'photo-directory-importer' )
 		);
 	}
 }

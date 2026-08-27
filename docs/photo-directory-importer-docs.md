@@ -1,6 +1,6 @@
-# WP Photo Directory Importer — Documentation
+# Photo Directory Importer — Documentation
 
-Version 1.3.15 · Last reviewed 2026-08-16
+Version 1.3.16 · Last reviewed 2026-08-16
 
 This file contains three documents:
 
@@ -15,7 +15,7 @@ This file contains three documents:
 
 ## Introduction
 
-The WP Photo Directory Importer adds a photo search tool to the WordPress admin. It connects to the public WordPress Photo Directory at wordpress.org/photos, where every photo is released under the CC0 license. Site editors can search that library, pick one photo or several, and import them into the site's own Media Library without leaving the admin.
+The Photo Directory Importer adds a photo search tool to the WordPress admin. It connects to the public WordPress Photo Directory at wordpress.org/photos, where every photo is released under the CC0 license. Site editors can search that library, pick one photo or several, and import them into the site's own Media Library without leaving the admin.
 
 Once a photo is imported, it becomes a normal attachment. It works as a featured image, inside blocks, in galleries, and anywhere else an uploaded image works.
 
@@ -130,7 +130,7 @@ Photos on the WordPress Photo Directory are released under CC0, so credit is opt
 1. Copy the `WP-Photo-Directory-Importer` folder into the site's `wp-content/plugins/` directory.
 2. Sign in to the WordPress admin.
 3. Go to **Plugins > Installed Plugins**.
-4. Find **WP Photo Directory Importer** and select **Activate**.
+4. Find **Photo Directory Importer** and select **Activate**.
 
 The plugin has no settings screen. It is ready to use as soon as it is active.
 
@@ -175,7 +175,7 @@ After testing, any unwanted photos can be removed from **Media > Library** the s
 
 # Troubleshooting Guide
 
-Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.15.
+Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.16.
 
 ## Problem: An Imported Photo's Title Does Not Match The Photo Directory
 
@@ -202,7 +202,7 @@ Every entry point is gated on the `upload_files` capability. The **Media > Photo
 
 ### Solution
 
-1. Confirm **WP Photo Directory Importer** is listed as active under **Plugins > Installed Plugins**.
+1. Confirm **Photo Directory Importer** is listed as active under **Plugins > Installed Plugins**.
 2. Confirm the reporting user's role includes **Upload Files**. Administrator, Editor, and Author roles include it by default.
 3. If a role editor plugin is in use, check whether `upload_files` has been removed from the affected role.
 4. If only the classic editor button is missing, check whether the site actually uses the classic editor. The button prints on the `media_buttons` hook, which the block editor never fires. On a block editor site this button is unreachable by design.
@@ -228,7 +228,7 @@ The tab is added by `assets/js/media-modal.js`, which patches `wp.media.view.Med
 ### Solution
 
 1. Confirm the screen is a post edit screen. The tab is not added on other admin screens, including **Media > Library**.
-2. Open the browser console and look for the warning `WP Photo Directory Importer: could not add media modal tab.` That message means `wp.media`'s internals changed shape and the patch was skipped. The plugin fails quietly here on purpose, so the rest of the media picker keeps working.
+2. Open the browser console and look for the warning `Photo Directory Importer: could not add media modal tab.` That message means `wp.media`'s internals changed shape and the patch was skipped. The plugin fails quietly here on purpose, so the rest of the media picker keeps working.
 3. Confirm `media-modal.js` loads on the page, along with the `media-views` script it depends on.
 4. If a custom media frame is in use, check whether it extends `MediaFrame.Select` or `MediaFrame.Post`. Frames built from other base classes will not receive the tab.
 
@@ -417,15 +417,15 @@ These affect the plugin's own bundled files, not site behavior. They are worth c
 
 | File | Issue |
 |---|---|
-| `wp-photo-directory-importer.php` | The **Plugin URI** and **Author URI** headers still contain the placeholder `your-username`. |
+| `photo-directory-importer.php` | The **Plugin URI** and **Author URI** headers still contain the placeholder `your-username`. |
 | `readme.txt` | The **Contributors** list omits `michelleames`, who is named in the plugin header's **Author** field. |
 | `readme.txt` | The developer notes describe the title fallback as slug-derived and state that the browse grid does not display titles. Both describe earlier behavior. |
 | `assets/js/block-editor.js` | The file is never registered or enqueued, so the block editor sidebar panel it defines is unreachable. |
 
 ## Additional Resources
 
-- WP Photo Directory Importer User Guide
-- WP Photo Directory Importer Feature Overview
+- Photo Directory Importer User Guide
+- Photo Directory Importer Feature Overview
 - WordPress Photo Directory: `https://wordpress.org/photos`
 - Upstream API endpoint: `https://wordpress.org/photos/wp-json/wp/v2/photos`
 - Key files: `includes/class-pdi-api.php`, `includes/class-pdi-importer.php`, `includes/class-pdi-plugin.php`, `assets/js/photo-browser.js`, `assets/js/media-modal.js`
@@ -437,7 +437,7 @@ These affect the plugin's own bundled files, not site behavior. They are worth c
 
 ## Overview
 
-The WP Photo Directory Importer brings the WordPress Photo Directory into the WordPress admin. The Photo Directory is a community photo library hosted at wordpress.org/photos, and every photo in it is released under the CC0 license. CC0 photos can be used for any purpose, including commercial work, with no license fee and no required credit.
+The Photo Directory Importer brings the WordPress Photo Directory into the WordPress admin. The Photo Directory is a community photo library hosted at wordpress.org/photos, and every photo in it is released under the CC0 license. CC0 photos can be used for any purpose, including commercial work, with no license fee and no required credit.
 
 The plugin lets site editors search that library and add photos to their own site without visiting an external site, downloading a file, and uploading it again. Imported photos become standard Media Library items and behave like any other uploaded image.
 
