@@ -35,6 +35,28 @@
 		} );
 	}
 
+	/**
+	 * Wraps wp.i18n._n() so the plural form is chosen using the current
+	 * locale's real plural rule, rather than a hardcoded "count === 1"
+	 * check — English only has two plural forms, but many languages have
+	 * three, four, or six, and a locale-aware _n() is the only way a
+	 * translator can supply the right number of them. Falls back to a
+	 * plain English-style check if wp.i18n isn't available for some
+	 * reason ('wp-i18n' is a hard dependency of this script, so that
+	 * should never actually happen).
+	 *
+	 * @param {string} single Singular source string, with a %s placeholder.
+	 * @param {string} plural Plural source string, with a %s placeholder.
+	 * @param {number} count  The actual count.
+	 * @return {string} The chosen template, not yet interpolated — pass to format().
+	 */
+	function ni18n( single, plural, count ) {
+		if ( wp.i18n && wp.i18n._n ) {
+			return wp.i18n._n( single, plural, count, 'wp-photo-directory-importer' );
+		}
+		return 1 === count ? single : plural;
+	}
+
 	function el( tag, attrs, children ) {
 		var node = document.createElement( tag );
 		Object.keys( attrs || {} ).forEach( function ( key ) {
@@ -484,9 +506,14 @@
 			var status = el( 'span', {
 				class: 'pdi-tab__count',
 				text: count
-					? 1 === count
-						? strings.selectedStatusOne
-						: format( strings.selectedStatus, [ count ] )
+					? format(
+							ni18n(
+								'%s selected · imported to your Media Library on insert',
+								'%s selected · imported to your Media Library on insert',
+								count
+							),
+							[ count ]
+					  )
 					: strings.nothingSelected,
 			} );
 

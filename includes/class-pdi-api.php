@@ -54,7 +54,10 @@ class PDI_API {
 		check_ajax_referer( 'pdi_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this.', 'pdi' ) ), 403 );
+			wp_send_json_error(
+				array( 'message' => __( 'You do not have permission to do this.', 'wp-photo-directory-importer' ) ),
+				403
+			);
 			return;
 		}
 
@@ -93,7 +96,10 @@ class PDI_API {
 		check_ajax_referer( 'pdi_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error( array( 'message' => __( 'You do not have permission to do this.', 'pdi' ) ), 403 );
+			wp_send_json_error(
+				array( 'message' => __( 'You do not have permission to do this.', 'wp-photo-directory-importer' ) ),
+				403
+			);
 			return;
 		}
 
@@ -166,13 +172,16 @@ class PDI_API {
 			return new WP_Error(
 				'pdi_remote_error',
 				/* translators: %d: HTTP status code */
-				sprintf( __( 'The Photo Directory returned an error (HTTP %d).', 'pdi' ), $code )
+				sprintf( __( 'The Photo Directory returned an error (HTTP %d).', 'wp-photo-directory-importer' ), $code )
 			);
 		}
 
 		$items = json_decode( $body, true );
 		if ( ! is_array( $items ) ) {
-			return new WP_Error( 'pdi_bad_response', __( 'The Photo Directory returned an unexpected response.', 'pdi' ) );
+			return new WP_Error(
+				'pdi_bad_response',
+				__( 'The Photo Directory returned an unexpected response.', 'wp-photo-directory-importer' )
+			);
 		}
 
 		$photos = array();
@@ -363,7 +372,7 @@ class PDI_API {
 	public static function get_photo( $id ) {
 		$id = absint( $id );
 		if ( ! $id ) {
-			return new WP_Error( 'pdi_bad_id', __( 'Invalid photo ID.', 'pdi' ) );
+			return new WP_Error( 'pdi_bad_id', __( 'Invalid photo ID.', 'wp-photo-directory-importer' ) );
 		}
 
 		$url = add_query_arg( array( '_embed' => self::EMBED_RELATIONS ), self::REMOTE_BASE . '/' . $id );
@@ -385,13 +394,16 @@ class PDI_API {
 			return new WP_Error(
 				'pdi_remote_error',
 				/* translators: %d: HTTP status code */
-				sprintf( __( 'The Photo Directory returned an error (HTTP %d).', 'pdi' ), $code )
+				sprintf( __( 'The Photo Directory returned an error (HTTP %d).', 'wp-photo-directory-importer' ), $code )
 			);
 		}
 
 		$item = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( ! is_array( $item ) ) {
-			return new WP_Error( 'pdi_bad_response', __( 'The Photo Directory returned an unexpected response.', 'pdi' ) );
+			return new WP_Error(
+				'pdi_bad_response',
+				__( 'The Photo Directory returned an unexpected response.', 'wp-photo-directory-importer' )
+			);
 		}
 
 		return self::normalize_item( $item );
@@ -551,7 +563,7 @@ class PDI_API {
 
 		$photo = array(
 			'id'          => $id,
-			'title'       => $title ? $title : __( 'Untitled photo', 'pdi' ),
+			'title'       => $title ? $title : __( 'Untitled photo', 'wp-photo-directory-importer' ),
 			'description' => $description,
 			'link'        => $link,
 			'slug'        => $slug,

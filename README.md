@@ -137,6 +137,31 @@ diagnose by comparing its checks against a live response from
   includes the actual rejected hostname; add it via
   `pdi_allowed_image_hosts` if you recognize it as legitimate.
 
+## Translations
+
+Text domain is `wp-photo-directory-importer` (must match the plugin's own
+folder/slug — WordPress.org's Plugin Check tool, and translation loading
+in general, both require this), with a bundled `.pot` file at
+`languages/wp-photo-directory-importer.pot`. Every PHP-side string uses
+`__()`/`_e()`/`esc_html__()`/`esc_attr__()` etc.; every JS-side string is
+localized server-side via `wp_localize_script()` — nothing is hardcoded in
+the JS files themselves.
+
+Dynamic counts ("N selected", "N photos imported") go through
+`wp.i18n._n()` (loaded via `wp_set_script_translations()`) rather than a
+hardcoded `count === 1` check, since English's two plural forms don't
+generalize to languages with three, four, or six — `_n()` consults the
+current locale's actual plural-forms rule instead. If you add a new
+count-dependent string, use the `ni18n()` helper already defined near the
+top of `photo-browser.js`/`media-modal.js` rather than branching on the
+count directly.
+
+Since WordPress 4.6, no `load_plugin_textdomain()` call is needed: core's
+just-in-time loader automatically picks up a compiled
+`wp-photo-directory-importer-{locale}.mo`/`.json` from
+`wp-content/languages/plugins/` once a translation exists, regardless of
+whether the plugin is hosted on wordpress.org.
+
 ## Development
 
 This plugin follows the [WordPress PHP Coding

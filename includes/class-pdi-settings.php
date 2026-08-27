@@ -30,8 +30,8 @@ class PDI_Settings {
 	 */
 	public static function register_page() {
 		add_options_page(
-			__( 'Photo Directory', 'pdi' ),
-			__( 'Photo Directory', 'pdi' ),
+			__( 'Photo Directory', 'wp-photo-directory-importer' ),
+			__( 'Photo Directory', 'wp-photo-directory-importer' ),
 			'manage_options',
 			self::PAGE_SLUG,
 			array( __CLASS__, 'render_page' )
@@ -80,17 +80,17 @@ class PDI_Settings {
 	 */
 	public static function supported_formats() {
 		$formats = array(
-			'original' => __( 'Keep original format', 'pdi' ),
+			'original' => __( 'Keep original format', 'wp-photo-directory-importer' ),
 		);
 
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
 			return $formats;
 		}
 
-		$formats['webp'] = __( 'Convert to WebP', 'pdi' );
+		$formats['webp'] = __( 'Convert to WebP', 'wp-photo-directory-importer' );
 
 		if ( wp_image_editor_supports( array( 'mime_type' => 'image/avif' ) ) ) {
-			$formats['avif'] = __( 'Convert to AVIF', 'pdi' );
+			$formats['avif'] = __( 'Convert to AVIF', 'wp-photo-directory-importer' );
 		}
 
 		return $formats;
@@ -173,21 +173,21 @@ class PDI_Settings {
 		}
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Photo Directory', 'pdi' ); ?></h1>
+			<h1><?php esc_html_e( 'Photo Directory', 'wp-photo-directory-importer' ); ?></h1>
 
 			<?php if ( ! $can_convert ) : ?>
 				<p>
-					<?php esc_html_e( 'WebP conversion is not available on this server. Imported photos will keep their original format.', 'pdi' ); ?>
+					<?php esc_html_e( 'WebP conversion is not available on this server. Imported photos will keep their original format.', 'wp-photo-directory-importer' ); ?>
 				</p>
 			<?php else : ?>
 				<form action="options.php" method="post">
 					<?php settings_fields( 'pdi_settings' ); ?>
-					<h2><?php esc_html_e( 'Image format', 'pdi' ); ?></h2>
+					<h2><?php esc_html_e( 'Image format', 'wp-photo-directory-importer' ); ?></h2>
 					<p>
-						<?php esc_html_e( 'Choose whether photos imported from the Photo Directory should be converted to a different format before they’re added to your Media Library.', 'pdi' ); ?>
+						<?php esc_html_e( 'Choose whether photos imported from the Photo Directory should be converted to a different format before they’re added to your Media Library.', 'wp-photo-directory-importer' ); ?>
 					</p>
 					<fieldset>
-						<legend class="screen-reader-text"><?php esc_html_e( 'Image format', 'pdi' ); ?></legend>
+						<legend class="screen-reader-text"><?php esc_html_e( 'Image format', 'wp-photo-directory-importer' ); ?></legend>
 						<?php foreach ( $supported as $value => $label ) : ?>
 							<label style="display:block;margin-bottom:8px;">
 								<input
@@ -203,10 +203,10 @@ class PDI_Settings {
 					</fieldset>
 
 					<div id="pdi-quality-row" style="margin-top:16px;<?php echo ( 'original' === self::get_format() ) ? ' display:none;' : ''; ?>">
-						<h2><?php esc_html_e( 'Image quality', 'pdi' ); ?></h2>
+						<h2><?php esc_html_e( 'Image quality', 'wp-photo-directory-importer' ); ?></h2>
 						<p>
 							<label for="pdi-quality-input">
-								<?php esc_html_e( 'Quality (1–100):', 'pdi' ); ?>
+								<?php esc_html_e( 'Quality (1–100):', 'wp-photo-directory-importer' ); ?>
 							</label>
 							<input
 								type="number"
@@ -220,7 +220,7 @@ class PDI_Settings {
 							/>
 						</p>
 						<p class="description">
-							<?php esc_html_e( 'Higher keeps more detail but produces a larger file. Used only when converting to WebP or AVIF — the original format, if kept, is never re-encoded.', 'pdi' ); ?>
+							<?php esc_html_e( 'Higher keeps more detail but produces a larger file. Used only when converting to WebP or AVIF — the original format, if kept, is never re-encoded.', 'wp-photo-directory-importer' ); ?>
 						</p>
 					</div>
 
