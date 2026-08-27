@@ -71,7 +71,7 @@
 	 */
 	function ni18n( single, plural, count ) {
 		if ( wp.i18n && wp.i18n._n ) {
-			return wp.i18n._n( single, plural, count, 'wp-photo-directory-importer' );
+			return wp.i18n._n( single, plural, count, 'photo-directory-importer' );
 		}
 		return 1 === count ? single : plural;
 	}
