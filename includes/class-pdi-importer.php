@@ -492,6 +492,8 @@ class PDI_Importer {
 	}
 
 	/**
+	 * Replaces a filename's extension.
+	 *
 	 * @param string $filename Original filename.
 	 * @param string $ext      New extension, without the leading dot.
 	 * @return string Filename with its extension replaced.

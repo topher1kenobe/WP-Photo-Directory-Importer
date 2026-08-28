@@ -4,7 +4,7 @@ Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.16
+Stable tag: 1.3.17
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -110,6 +110,14 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.17 =
+* Fixed the phpcs findings from a fresh run against the renamed plugin:
+  an equals-sign alignment warning in `class-pdi-plugin.php`'s author-link
+  rewriter, missing short descriptions in three doc comments (one each in
+  `class-pdi-importer.php` and `class-pdi-settings.php`, two total in the
+  latter), and `languages/index.php`'s file comment switched from a `//`
+  line comment to the required `/** ... */` docblock style.
 
 = 1.3.16 =
 * Renamed the plugin from "WP Photo Directory Importer" to "Photo

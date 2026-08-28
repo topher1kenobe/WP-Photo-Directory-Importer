@@ -97,6 +97,8 @@ class PDI_Settings {
 	}
 
 	/**
+	 * The best default format for this server.
+	 *
 	 * @return string 'webp' when this server can produce it, 'original' otherwise.
 	 */
 	public static function default_format() {
@@ -105,6 +107,8 @@ class PDI_Settings {
 	}
 
 	/**
+	 * Sanitizes a posted format value against the currently supported formats.
+	 *
 	 * @param string $value Raw posted value.
 	 * @return string A key guaranteed to exist in supported_formats().
 	 */
