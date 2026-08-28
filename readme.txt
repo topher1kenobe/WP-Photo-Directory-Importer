@@ -1,10 +1,10 @@
-=== WP Photo Directory Importer ===
+=== Photo Directory Importer ===
 Contributors: ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci, michelleames
 Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.12
+Stable tag: 1.3.17
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,7 +32,7 @@ Entry points:
 
 == Installation ==
 
-1. Upload the plugin files to the `/wp-content/plugins/wp-photo-directory-importer` directory, or install the plugin through the **Plugins > Add New** screen in wp-admin directly.
+1. Upload the plugin files to the `/wp-content/plugins/photo-directory-importer` directory, or install the plugin through the **Plugins > Add New** screen in wp-admin directly.
 2. Activate the plugin through the **Plugins** screen in WordPress.
 3. That's it — no configuration is needed and no API key or account is required. Look under **Media > Photo Directory**, use the "Photo Directory" button next to Add Media in the classic editor, or use the "Photo Directory" tab inside the native media picker (Set Featured Image, Add Media, an Image block's Media Library button, etc.).
 
@@ -110,6 +110,57 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 1.3.17 =
+* Fixed the phpcs findings from a fresh run against the renamed plugin:
+  an equals-sign alignment warning in `class-pdi-plugin.php`'s author-link
+  rewriter, missing short descriptions in three doc comments (one each in
+  `class-pdi-importer.php` and `class-pdi-settings.php`, two total in the
+  latter), and `languages/index.php`'s file comment switched from a `//`
+  line comment to the required `/** ... */` docblock style.
+
+= 1.3.16 =
+* Renamed the plugin from "WP Photo Directory Importer" to "Photo
+  Directory Importer" — WordPress.org's plugin guidelines prohibit "WP" or
+  "WordPress" in a plugin's name, since it implies an official affiliation
+  the plugin doesn't have. This touched everything tied to the old name:
+  the `Plugin Name` header, the main plugin file
+  (`wp-photo-directory-importer.php` → `photo-directory-importer.php`),
+  the `Text Domain` (and every translation call's domain argument, to
+  match — same requirement as the 1.3.14 fix), the bundled `.pot` file's
+  name and contents, and the `@package` docblock tag across every PHP
+  file. Internal-only identifiers (the `PDI_*` class names, `pdi_`-
+  prefixed hooks/filters/nonces, `pdi-*` CSS/JS handles) were left
+  untouched, since none of them spell out "WP" or "WordPress" and
+  changing them would be an unrelated, unnecessary breaking change.
+
+= 1.3.15 =
+* Fixed incorrect plural handling in the browse screen and media-picker
+  tab: several "N selected"/"N imported" strings picked between exactly
+  two hardcoded forms using a `count === 1` check in JavaScript — correct
+  for English, but impossible for a translator to adapt to a language
+  with three, four, or six plural forms (Russian, Polish, and Arabic,
+  among others). Now uses `wp.i18n._n()`, which consults the current
+  locale's real plural-forms rule instead. Along the way this also fixed
+  a visible English-language bug: the single-photo "quick import" success
+  message was using the plural template with the count hardcoded to 1,
+  producing "1 photos imported."
+* Added a bundled `.pot` file (`languages/photo-directory-importer.pot`)
+  and a `Domain Path` header, so translators have a starting point instead
+  of needing to generate one themselves before they can begin.
+
+= 1.3.14 =
+* Fixed a Plugin Check error: "Mismatched text domain. Expected
+  'photo-directory-importer' but got 'pdi'." WordPress.org requires the
+  `Text Domain` header, and every translation function's domain argument,
+  to exactly match the plugin's own folder/slug. Changed the domain from
+  `pdi` to `photo-directory-importer` everywhere: the plugin header
+  and all translation function calls across every PHP and JS file.
+  Internal-only identifiers that happen to start with `pdi_` (hooks,
+  filters, nonces, meta keys, transient keys) were deliberately left
+  untouched, since those aren't text domains.
+* Reformatted a handful of PHP statements that became excessively long
+  purely from the domain string's length.
 
 = 1.3.12 =
 * On the Plugins list page, each contributor's name now links to their

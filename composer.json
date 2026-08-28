@@ -1,5 +1,5 @@
 {
-	"name": "topher1kenobe/wp-photo-directory-importer",
+	"name": "topher1kenobe/photo-directory-importer",
 	"description": "Search the WordPress Photo Directory and import CC0 photos into the Media Library.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",

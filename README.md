@@ -1,4 +1,4 @@
-# WP Photo Directory Importer
+# Photo Directory Importer
 
 Search the [WordPress Photo Directory](https://wordpress.org/photos) from
 inside wp-admin and import CC0 photos straight into your site's Media
@@ -30,7 +30,7 @@ Three entry points are added to wp-admin:
 
 1. Download the [latest release](../../releases) or clone this repo.
 2. Copy (or symlink) the plugin folder into `wp-content/plugins/`.
-3. Activate **WP Photo Directory Importer** from the Plugins screen.
+3. Activate **Photo Directory Importer** from the Plugins screen.
 
 No configuration is required — no API key is needed, since the Photo
 Directory API is public.
@@ -39,7 +39,7 @@ Directory API is public.
 
 | File | Responsibility |
 |---|---|
-| `wp-photo-directory-importer.php` | Plugin bootstrap: defines constants, loads the include files. |
+| `photo-directory-importer.php` | Plugin bootstrap: defines constants, loads the include files. |
 | `includes/class-pdi-plugin.php` | Hook registration, asset registration, admin page, media button. |
 | `includes/class-pdi-api.php` | Talks to the upstream Photo Directory REST API and normalizes its response (search + single-photo lookup, transient caching). |
 | `includes/class-pdi-importer.php` | Downloads a chosen photo, optionally converts its format, and sideloads it into the local Media Library via `media_handle_sideload()`, with de-duplication and caption/credit handling. |
@@ -136,6 +136,31 @@ diagnose by comparing its checks against a live response from
   If an import ever fails with "not on a trusted host," the error message
   includes the actual rejected hostname; add it via
   `pdi_allowed_image_hosts` if you recognize it as legitimate.
+
+## Translations
+
+Text domain is `photo-directory-importer` (must match the plugin's own
+folder/slug — WordPress.org's Plugin Check tool, and translation loading
+in general, both require this), with a bundled `.pot` file at
+`languages/photo-directory-importer.pot`. Every PHP-side string uses
+`__()`/`_e()`/`esc_html__()`/`esc_attr__()` etc.; every JS-side string is
+localized server-side via `wp_localize_script()` — nothing is hardcoded in
+the JS files themselves.
+
+Dynamic counts ("N selected", "N photos imported") go through
+`wp.i18n._n()` (loaded via `wp_set_script_translations()`) rather than a
+hardcoded `count === 1` check, since English's two plural forms don't
+generalize to languages with three, four, or six — `_n()` consults the
+current locale's actual plural-forms rule instead. If you add a new
+count-dependent string, use the `ni18n()` helper already defined near the
+top of `photo-browser.js`/`media-modal.js` rather than branching on the
+count directly.
+
+Since WordPress 4.6, no `load_plugin_textdomain()` call is needed: core's
+just-in-time loader automatically picks up a compiled
+`photo-directory-importer-{locale}.mo`/`.json` from
+`wp-content/languages/plugins/` once a translation exists, regardless of
+whether the plugin is hosted on wordpress.org.
 
 ## Development
 

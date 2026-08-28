@@ -54,6 +54,28 @@
 		return Number( value || 0 ).toLocaleString();
 	}
 
+	/**
+	 * Wraps wp.i18n._n() so the plural form is chosen using the current
+	 * locale's real plural rule, rather than a hardcoded "count === 1"
+	 * check — English only has two plural forms, but many languages have
+	 * three, four, or six, and a locale-aware _n() is the only way a
+	 * translator can supply the right number of them. Falls back to a
+	 * plain English-style check if wp.i18n isn't available for some
+	 * reason ('wp-i18n' is a hard dependency of this script, so that
+	 * should never actually happen).
+	 *
+	 * @param {string} single Singular source string, with a %s placeholder.
+	 * @param {string} plural Plural source string, with a %s placeholder.
+	 * @param {number} count  The actual count.
+	 * @return {string} The chosen template, not yet interpolated — pass to format().
+	 */
+	function ni18n( single, plural, count ) {
+		if ( wp.i18n && wp.i18n._n ) {
+			return wp.i18n._n( single, plural, count, 'photo-directory-importer' );
+		}
+		return 1 === count ? single : plural;
+	}
+
 	function ajax( action, data ) {
 		var params = Object.assign( { action: action, nonce: settings.nonce }, data || {} );
 		var body   = Object.keys( params )
@@ -766,7 +788,11 @@
 				h(
 					'div',
 					{ className: 'pdi-tray__selection' },
-					h( 'span', { className: 'pdi-tray__count' }, format( strings.selectedCount, [ photos.length ] ) ),
+					h(
+						'span',
+						{ className: 'pdi-tray__count' },
+						format( ni18n( '%s selected', '%s selected', photos.length ), [ photos.length ] )
+					),
 					h(
 						'div',
 						{ className: 'pdi-tray__thumbs' },
@@ -845,9 +871,10 @@
 							disabled: running,
 							onClick: props.onImport,
 						},
-						1 === photos.length
-							? strings.importOne
-							: format( strings.importCount, [ photos.length ] )
+						format(
+							ni18n( 'Import %s photo', 'Import %s photos', photos.length ),
+							[ photos.length ]
+						)
 					)
 				)
 			),
@@ -968,7 +995,7 @@
 							type: 'success',
 							title: response.data.alreadyInLibrary
 								? strings.alreadyImported
-								: format( strings.importedCount, [ 1 ] ),
+								: format( ni18n( '%s photo imported.', '%s photos imported.', 1 ), [ 1 ] ),
 							message: response.data.alreadyInLibrary ? strings.alreadyImportedBody : '',
 							actionLabel: strings.viewInLibrary,
 							actionUrl: response.data.libraryUrl,
@@ -1024,10 +1051,10 @@
 				if ( succeeded && ! failed.length ) {
 					notice = {
 						type: 'success',
-						title:
-							1 === succeeded
-								? strings.importedOne
-								: format( strings.importedCount, [ succeeded ] ),
+						title: format(
+							ni18n( '%s photo imported.', '%s photos imported.', succeeded ),
+							[ succeeded ]
+						),
 						message: strings.importedBody,
 						actionLabel: strings.viewInMediaLibrary,
 						actionUrl: settings.libraryUrl,
@@ -1223,7 +1250,14 @@
 						'span',
 						{ className: 'pdi-results__hint' },
 						state.selected.length
-							? format( strings.hintSelected, [ state.selected.length ] )
+							? format(
+									ni18n(
+										'%s selected. Click a photo to add or remove it.',
+										'%s selected. Click a photo to add or remove it.',
+										state.selected.length
+									),
+									[ state.selected.length ]
+							  )
 							: strings.hintSelect
 					),
 					state.selected.length

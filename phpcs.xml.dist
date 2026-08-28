@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="WP Photo Directory Importer">
+<ruleset name="Photo Directory Importer">
 	<description>WordPress Coding Standards ruleset for this plugin.</description>
 
 	<file>.</file>
