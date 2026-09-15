@@ -5,3 +5,6 @@
 *.zip
 .idea/
 .vscode/
+
+# composer.lock is committed on purpose: it pins the PHPCS toolchain so a
+# local run and CI report the same violations.
