@@ -2,7 +2,7 @@
 /**
  * Photo Directory REST API client.
  *
- * @package Photo_Directory_Importer
+ * @package PhotoFetch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * raw response from self::search() to see what the API is actually
  * returning on your install.
  */
-class PDI_API {
+class PhotoFetch_API {
 
 	const REMOTE_BASE = 'https://wordpress.org/photos/wp-json/wp/v2/photos';
 
@@ -46,16 +46,16 @@ class PDI_API {
 	const FILTER_TAXONOMIES = array( 'photo-categories', 'photo-orientations', 'photo-colors' );
 
 	/**
-	 * AJAX handler for `action=pdi_search`. Expects `search` and `page`
+	 * AJAX handler for `action=photofetch_search`. Expects `search` and `page`
 	 * POST parameters, plus optional `category`, `orientation`, `color`
 	 * (term IDs) and `sort`; returns a normalized list of photos as JSON.
 	 */
 	public static function ajax_search() {
-		check_ajax_referer( 'pdi_nonce', 'nonce' );
+		check_ajax_referer( 'photofetch_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'You do not have permission to do this.', 'photo-directory-importer' ) ),
+				array( 'message' => __( 'You do not have permission to do this.', 'photofetch' ) ),
 				403
 			);
 			return;
@@ -81,23 +81,23 @@ class PDI_API {
 		// Resolved outside search() on purpose: the search payload is cached
 		// for five minutes, but which photos are already in the library
 		// changes the moment one is imported.
-		$result['importedMap'] = PDI_Importer::find_existing_attachments( wp_list_pluck( $result['photos'], 'id' ) );
+		$result['importedMap'] = PhotoFetch_Importer::find_existing_attachments( wp_list_pluck( $result['photos'], 'id' ) );
 		$result['libraryUrl']  = admin_url( 'upload.php' );
 
 		wp_send_json_success( $result );
 	}
 
 	/**
-	 * AJAX handler for `action=pdi_terms`. Returns the filterable taxonomy
+	 * AJAX handler for `action=photofetch_terms`. Returns the filterable taxonomy
 	 * terms so the UI can populate its dropdowns from the directory itself
 	 * rather than from a hardcoded list that silently rots.
 	 */
 	public static function ajax_terms() {
-		check_ajax_referer( 'pdi_nonce', 'nonce' );
+		check_ajax_referer( 'photofetch_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'You do not have permission to do this.', 'photo-directory-importer' ) ),
+				array( 'message' => __( 'You do not have permission to do this.', 'photofetch' ) ),
 				403
 			);
 			return;
@@ -125,7 +125,7 @@ class PDI_API {
 	public static function search( $search = '', $page = 1, $per_page = 20, $filters = array() ) {
 		$filters = self::normalize_filters( $filters, $search );
 
-		$cache_key = 'pdi_search_' . md5( wp_json_encode( array( $search, $page, $per_page, $filters ) ) );
+		$cache_key = 'photofetch_search_' . md5( wp_json_encode( array( $search, $page, $per_page, $filters ) ) );
 		$cached    = get_transient( $cache_key );
 		if ( false !== $cached ) {
 			return $cached;
@@ -170,17 +170,17 @@ class PDI_API {
 
 		if ( $code < 200 || $code >= 300 ) {
 			return new WP_Error(
-				'pdi_remote_error',
+				'photofetch_remote_error',
 				/* translators: %d: HTTP status code */
-				sprintf( __( 'The Photo Directory returned an error (HTTP %d).', 'photo-directory-importer' ), $code )
+				sprintf( __( 'The Photo Directory returned an error (HTTP %d).', 'photofetch' ), $code )
 			);
 		}
 
 		$items = json_decode( $body, true );
 		if ( ! is_array( $items ) ) {
 			return new WP_Error(
-				'pdi_bad_response',
-				__( 'The Photo Directory returned an unexpected response.', 'photo-directory-importer' )
+				'photofetch_bad_response',
+				__( 'The Photo Directory returned an unexpected response.', 'photofetch' )
 			);
 		}
 
@@ -255,7 +255,7 @@ class PDI_API {
 	 * @return array Map of taxonomy name => list of [ id, slug, name, count, hex ].
 	 */
 	public static function get_filter_terms() {
-		$cached = get_transient( 'pdi_filter_terms' );
+		$cached = get_transient( 'photofetch_filter_terms' );
 		if ( false !== $cached ) {
 			return $cached;
 		}
@@ -265,7 +265,7 @@ class PDI_API {
 			$out[ $taxonomy ] = self::fetch_terms( $taxonomy );
 		}
 
-		set_transient( 'pdi_filter_terms', $out, self::TERMS_CACHE_TTL );
+		set_transient( 'photofetch_filter_terms', $out, self::TERMS_CACHE_TTL );
 
 		return $out;
 	}
@@ -343,7 +343,7 @@ class PDI_API {
 		 * @param array $swatches Map of term slug => hex colour.
 		 */
 		return apply_filters(
-			'pdi_color_swatches',
+			'photofetch_color_swatches',
 			array(
 				'black'  => '#1d2327',
 				'blue'   => '#3858e9',
@@ -372,7 +372,7 @@ class PDI_API {
 	public static function get_photo( $id ) {
 		$id = absint( $id );
 		if ( ! $id ) {
-			return new WP_Error( 'pdi_bad_id', __( 'Invalid photo ID.', 'photo-directory-importer' ) );
+			return new WP_Error( 'photofetch_bad_id', __( 'Invalid photo ID.', 'photofetch' ) );
 		}
 
 		$url = add_query_arg( array( '_embed' => self::EMBED_RELATIONS ), self::REMOTE_BASE . '/' . $id );
@@ -392,17 +392,17 @@ class PDI_API {
 		$code = wp_remote_retrieve_response_code( $response );
 		if ( $code < 200 || $code >= 300 ) {
 			return new WP_Error(
-				'pdi_remote_error',
+				'photofetch_remote_error',
 				/* translators: %d: HTTP status code */
-				sprintf( __( 'The Photo Directory returned an error (HTTP %d).', 'photo-directory-importer' ), $code )
+				sprintf( __( 'The Photo Directory returned an error (HTTP %d).', 'photofetch' ), $code )
 			);
 		}
 
 		$item = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( ! is_array( $item ) ) {
 			return new WP_Error(
-				'pdi_bad_response',
-				__( 'The Photo Directory returned an unexpected response.', 'photo-directory-importer' )
+				'photofetch_bad_response',
+				__( 'The Photo Directory returned an unexpected response.', 'photofetch' )
 			);
 		}
 
@@ -563,7 +563,7 @@ class PDI_API {
 
 		$photo = array(
 			'id'          => $id,
-			'title'       => $title ? $title : __( 'Untitled photo', 'photo-directory-importer' ),
+			'title'       => $title ? $title : __( 'Untitled photo', 'photofetch' ),
 			'description' => $description,
 			'link'        => $link,
 			'slug'        => $slug,
@@ -578,7 +578,7 @@ class PDI_API {
 			'terms'       => self::extract_terms( $item ),
 		);
 
-		$photo['credit'] = PDI_Importer::build_credit_line( $photo );
+		$photo['credit'] = PhotoFetch_Importer::build_credit_line( $photo );
 
 		return $photo;
 	}
@@ -639,7 +639,7 @@ class PDI_API {
 		 *
 		 * @param int $length Maximum title length in characters.
 		 */
-		$length = (int) apply_filters( 'pdi_description_title_length', 60 );
+		$length = (int) apply_filters( 'photofetch_description_title_length', 60 );
 
 		if ( mb_strlen( $text ) > $length ) {
 			$words = explode( ' ', $text );
@@ -684,7 +684,7 @@ class PDI_API {
 		 *
 		 * @param int $length Maximum alt-text length in characters. Default 125.
 		 */
-		$max = (int) apply_filters( 'pdi_alt_max_length', 125 );
+		$max = (int) apply_filters( 'photofetch_alt_max_length', 125 );
 
 		// Anything already within the limit is left exactly as written.
 		if ( mb_strlen( $text ) > $max ) {
@@ -708,7 +708,7 @@ class PDI_API {
 		 * @param string $alt         Derived alt text.
 		 * @param string $description Full plain-text description.
 		 */
-		return apply_filters( 'pdi_alt_from_description', $text, $description );
+		return apply_filters( 'photofetch_alt_from_description', $text, $description );
 	}
 
 	/**
@@ -737,7 +737,7 @@ class PDI_API {
 		 * @param string[] $placeholders Lowercased placeholder strings.
 		 */
 		return apply_filters(
-			'pdi_generic_title_placeholders',
+			'photofetch_generic_title_placeholders',
 			array( 'photo detail', 'untitled', 'untitled photo' )
 		);
 	}

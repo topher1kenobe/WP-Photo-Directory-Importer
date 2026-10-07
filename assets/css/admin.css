@@ -1,33 +1,33 @@
-.pdi-app,
-.pdi-modal-body {
+.photofetch-app,
+.photofetch-modal-body {
 	max-width: 900px;
 }
 
-.pdi-searchbar {
+.photofetch-searchbar {
 	display: flex;
 	gap: 8px;
 	margin-bottom: 16px;
 }
 
-.pdi-search-input {
+.photofetch-search-input {
 	flex: 1;
 	padding: 6px 8px;
 	font-size: 14px;
 }
 
-.pdi-status {
+.photofetch-status {
 	min-height: 20px;
 	color: #646970;
 	margin-bottom: 8px;
 }
 
-.pdi-grid {
+.photofetch-grid {
 	display: grid;
 	grid-template-columns: repeat( auto-fill, minmax( 160px, 1fr ) );
 	gap: 14px;
 }
 
-.pdi-card {
+.photofetch-card {
 	border: 1px solid #dcdcde;
 	border-radius: 4px;
 	overflow: hidden;
@@ -36,7 +36,7 @@
 	flex-direction: column;
 }
 
-.pdi-card img {
+.photofetch-card img {
 	width: 100%;
 	height: 120px;
 	object-fit: cover;
@@ -44,7 +44,7 @@
 	background: #f0f0f1;
 }
 
-.pdi-card-actions {
+.photofetch-card-actions {
 	padding: 6px 8px 8px;
 	display: flex;
 	gap: 6px;
@@ -53,22 +53,22 @@
 	margin-top: auto;
 }
 
-.pdi-card.pdi-imported {
+.photofetch-card.photofetch-imported {
 	border-color: #00a32a;
 }
 
-.pdi-imported-label {
+.photofetch-imported-label {
 	color: #00a32a;
 	font-size: 12px;
 	font-weight: 600;
 }
 
-.pdi-load-more {
+.photofetch-load-more {
 	display: block;
 	margin: 16px auto 0;
 }
 
-.pdi-modal-overlay {
+.photofetch-modal-overlay {
 	position: fixed;
 	inset: 0;
 	background: rgba( 0, 0, 0, 0.6 );
@@ -78,7 +78,7 @@
 	justify-content: center;
 }
 
-.pdi-modal-box {
+.photofetch-modal-box {
 	background: #fff;
 	width: 90%;
 	max-width: 960px;
@@ -89,7 +89,7 @@
 	padding: 24px;
 }
 
-.pdi-modal-close {
+.photofetch-modal-close {
 	position: absolute;
 	top: 8px;
 	right: 12px;
@@ -101,18 +101,18 @@
 	color: #646970;
 }
 
-.pdi-modal-close:hover {
+.photofetch-modal-close:hover {
 	color: #1d2327;
 }
 
 /* Inside the native wp.media modal (our custom router tab) */
-.pdi-media-modal-content {
+.photofetch-media-modal-content {
 	padding: 16px;
 	overflow-y: auto;
 	height: 100%;
 	box-sizing: border-box;
 }
 
-.pdi-media-modal-content .pdi-app {
+.photofetch-media-modal-content .photofetch-app {
 	max-width: none;
 }

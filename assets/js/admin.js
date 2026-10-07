@@ -1,10 +1,10 @@
-/* global PDI_Settings, wp */
+/* global PhotoFetch_Settings, wp */
 ( function () {
 	'use strict';
 
-	window.PDI = window.PDI || {};
+	window.PhotoFetch = window.PhotoFetch || {};
 
-	var S = window.PDI_Settings || {};
+	var S = window.PhotoFetch_Settings || {};
 
 	function el( tag, attrs, children ) {
 		var e = document.createElement( tag );
@@ -51,35 +51,35 @@
 	 * modal's own toolbar button (Set featured image / Insert / Select)
 	 * becomes the confirmation step instead.
 	 */
-	function PDIView( container, opts ) {
+	function PhotoFetchView( container, opts ) {
 		this.container = container;
 		this.opts = opts || {};
 		this.state = { search: '', page: 1, totalPages: 1, loading: false };
 		this.build();
 	}
 
-	PDIView.prototype.build = function () {
+	PhotoFetchView.prototype.build = function () {
 		var self = this;
 		this.container.innerHTML = '';
-		this.container.classList.add( 'pdi-app' );
+		this.container.classList.add( 'photofetch-app' );
 
 		this.searchInput = el( 'input', {
 			type: 'search',
-			class: 'pdi-search-input',
+			class: 'photofetch-search-input',
 			placeholder: S.strings.search,
 		} );
 		this.searchBtn = el( 'button', { type: 'button', class: 'button button-primary' }, [
 			document.createTextNode( S.strings.search ),
 		] );
-		this.grid = el( 'div', { class: 'pdi-grid' } );
-		this.status = el( 'div', { class: 'pdi-status' } );
+		this.grid = el( 'div', { class: 'photofetch-grid' } );
+		this.status = el( 'div', { class: 'photofetch-status' } );
 		this.loadMoreBtn = el(
 			'button',
-			{ type: 'button', class: 'button pdi-load-more', style: 'display:none' },
+			{ type: 'button', class: 'button photofetch-load-more', style: 'display:none' },
 			[ document.createTextNode( S.strings.loadMore ) ]
 		);
 
-		var form = el( 'div', { class: 'pdi-searchbar' }, [ this.searchInput, this.searchBtn ] );
+		var form = el( 'div', { class: 'photofetch-searchbar' }, [ this.searchInput, this.searchBtn ] );
 
 		this.container.appendChild( form );
 		this.container.appendChild( this.status );
@@ -102,11 +102,11 @@
 		this.doSearch( true );
 	};
 
-	PDIView.prototype.setStatus = function ( msg ) {
+	PhotoFetchView.prototype.setStatus = function ( msg ) {
 		this.status.textContent = msg || '';
 	};
 
-	PDIView.prototype.doSearch = function ( reset ) {
+	PhotoFetchView.prototype.doSearch = function ( reset ) {
 		var self = this;
 		if ( this.state.loading ) {
 			return;
@@ -119,7 +119,7 @@
 		this.state.loading = true;
 		this.setStatus( '…' );
 
-		ajax( 'pdi_search', { search: this.state.search, page: this.state.page } )
+		ajax( 'photofetch_search', { search: this.state.search, page: this.state.page } )
 			.then( function ( res ) {
 				self.state.loading = false;
 
@@ -150,14 +150,14 @@
 			} );
 	};
 
-	PDIView.prototype.renderCard = function ( photo ) {
+	PhotoFetchView.prototype.renderCard = function ( photo ) {
 		var self = this;
 		var img = el( 'img', { src: photo.thumbUrl, alt: photo.alt || photo.title, loading: 'lazy' } );
-		var importBtn = el( 'button', { type: 'button', class: 'button button-small pdi-import-btn' }, [
+		var importBtn = el( 'button', { type: 'button', class: 'button button-small photofetch-import-btn' }, [
 			document.createTextNode( S.strings.import ),
 		] );
-		var actions = el( 'div', { class: 'pdi-card-actions' }, [ importBtn ] );
-		var card = el( 'div', { class: 'pdi-card' }, [ img, actions ] );
+		var actions = el( 'div', { class: 'photofetch-card-actions' }, [ importBtn ] );
+		var card = el( 'div', { class: 'photofetch-card' }, [ img, actions ] );
 
 		importBtn.addEventListener( 'click', function () {
 			self.importPhoto( photo, card, importBtn );
@@ -166,12 +166,12 @@
 		this.grid.appendChild( card );
 	};
 
-	PDIView.prototype.importPhoto = function ( photo, card, btn ) {
+	PhotoFetchView.prototype.importPhoto = function ( photo, card, btn ) {
 		var self = this;
 		btn.disabled = true;
 		btn.textContent = S.strings.importing;
 
-		ajax( 'pdi_import', { photo_id: photo.id, size: 'full' } )
+		ajax( 'photofetch_import', { photo_id: photo.id, size: 'full' } )
 			.then( function ( res ) {
 				if ( ! res.success ) {
 					btn.disabled = false;
@@ -181,14 +181,14 @@
 				}
 
 				var attachment = res.data;
-				card.classList.add( 'pdi-imported' );
+				card.classList.add( 'photofetch-imported' );
 
-				var actions = card.querySelector( '.pdi-card-actions' );
+				var actions = card.querySelector( '.photofetch-card-actions' );
 				actions.innerHTML = '';
 
 				if ( self.opts.autoSelect && self.opts.onImport ) {
 					actions.appendChild(
-						el( 'span', { class: 'pdi-imported-label' }, [
+						el( 'span', { class: 'photofetch-imported-label' }, [
 							document.createTextNode( '✓ ' + S.strings.selected ),
 						] )
 					);
@@ -197,7 +197,7 @@
 				}
 
 				actions.appendChild(
-					el( 'span', { class: 'pdi-imported-label' }, [ document.createTextNode( '✓ ' + S.strings.imported ) ] )
+					el( 'span', { class: 'photofetch-imported-label' }, [ document.createTextNode( '✓ ' + S.strings.imported ) ] )
 				);
 
 				actions.appendChild(
@@ -225,25 +225,25 @@
 			} );
 	};
 
-	window.PDI.render = function ( container, opts ) {
-		return new PDIView( container, opts );
+	window.PhotoFetch.render = function ( container, opts ) {
+		return new PhotoFetchView( container, opts );
 	};
 
 	// ---- Reusable modal, used by the classic-editor button and the block-editor sidebar ----
 	var modalEl = null;
 
-	window.PDI.openModal = function ( opts ) {
+	window.PhotoFetch.openModal = function ( opts ) {
 		if ( modalEl ) {
 			modalEl.style.display = 'flex';
 			return;
 		}
 
-		var closeBtn = el( 'button', { type: 'button', class: 'pdi-modal-close', 'aria-label': S.strings.close }, [
+		var closeBtn = el( 'button', { type: 'button', class: 'photofetch-modal-close', 'aria-label': S.strings.close }, [
 			document.createTextNode( '×' ),
 		] );
-		var body = el( 'div', { class: 'pdi-modal-body' } );
-		var box = el( 'div', { class: 'pdi-modal-box' }, [ closeBtn, body ] );
-		modalEl = el( 'div', { class: 'pdi-modal-overlay' }, [ box ] );
+		var body = el( 'div', { class: 'photofetch-modal-body' } );
+		var box = el( 'div', { class: 'photofetch-modal-box' }, [ closeBtn, body ] );
+		modalEl = el( 'div', { class: 'photofetch-modal-overlay' }, [ box ] );
 		document.body.appendChild( modalEl );
 
 		closeBtn.addEventListener( 'click', function () {
@@ -255,30 +255,30 @@
 			}
 		} );
 
-		window.PDI.render( body, opts );
+		window.PhotoFetch.render( body, opts );
 	};
 
-	window.PDI.closeModal = function () {
+	window.PhotoFetch.closeModal = function () {
 		if ( modalEl ) {
 			modalEl.style.display = 'none';
 		}
 	};
 
 	document.addEventListener( 'DOMContentLoaded', function () {
-		var page = document.querySelector( '#pdi-app[data-context="page"]' );
+		var page = document.querySelector( '#photofetch-app[data-context="page"]' );
 		if ( page ) {
-			window.PDI.render( page );
+			window.PhotoFetch.render( page );
 		}
 
-		document.querySelectorAll( '.pdi-open-modal' ).forEach( function ( btn ) {
+		document.querySelectorAll( '.photofetch-open-modal' ).forEach( function ( btn ) {
 			btn.addEventListener( 'click', function ( e ) {
 				e.preventDefault();
-				window.PDI.openModal( {
+				window.PhotoFetch.openModal( {
 					onImport: function ( attachment ) {
 						if ( window.wp && wp.media && wp.media.featuredImage ) {
 							wp.media.featuredImage.set( attachment.id );
 						}
-						window.PDI.closeModal();
+						window.PhotoFetch.closeModal();
 					},
 				} );
 			} );

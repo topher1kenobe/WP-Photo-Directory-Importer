@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="Photo Directory Importer">
+<ruleset name="PhotoFetch">
 	<description>WordPress Coding Standards ruleset for this plugin.</description>
 
 	<file>.</file>
@@ -26,7 +26,7 @@
 	<rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
-				<element value="photo-directory-importer"/>
+				<element value="photofetch"/>
 			</property>
 		</properties>
 	</rule>

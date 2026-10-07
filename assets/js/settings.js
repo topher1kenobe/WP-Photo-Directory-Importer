@@ -7,15 +7,15 @@
 	'use strict';
 
 	document.addEventListener( 'DOMContentLoaded', function () {
-		var radios = document.querySelectorAll( '.pdi-format-radio' );
-		var row = document.getElementById( 'pdi-quality-row' );
+		var radios = document.querySelectorAll( '.photofetch-format-radio' );
+		var row = document.getElementById( 'photofetch-quality-row' );
 
 		if ( ! radios.length || ! row ) {
 			return;
 		}
 
 		function sync() {
-			var checked = document.querySelector( '.pdi-format-radio:checked' );
+			var checked = document.querySelector( '.photofetch-format-radio:checked' );
 			row.style.display = checked && 'original' !== checked.value ? '' : 'none';
 		}
 

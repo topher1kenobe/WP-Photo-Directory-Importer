@@ -1,6 +1,6 @@
-# Photo Directory Importer — Documentation
+# PhotoFetch — Documentation
 
-Version 1.3.17 · Last reviewed 2026-08-16
+Version 2.0.0 · Last reviewed 2026-10-07
 
 This file contains three documents:
 
@@ -15,7 +15,7 @@ This file contains three documents:
 
 ## Introduction
 
-The Photo Directory Importer adds a photo search tool to the WordPress admin. It connects to the public WordPress Photo Directory at wordpress.org/photos, where every photo is released under the CC0 license. Site editors can search that library, pick one photo or several, and import them into the site's own Media Library without leaving the admin.
+The PhotoFetch adds a photo search tool to the WordPress admin. It connects to the public WordPress Photo Directory at wordpress.org/photos, where every photo is released under the CC0 license. Site editors can search that library, pick one photo or several, and import them into the site's own Media Library without leaving the admin.
 
 Once a photo is imported, it becomes a normal attachment. It works as a featured image, inside blocks, in galleries, and anywhere else an uploaded image works.
 
@@ -109,12 +109,12 @@ The plugin also saves hidden values on each attachment so the original photo can
 
 | Stored Value | What It Holds |
 |---|---|
-| `_pdi_source_id` | The photo's ID on the Photo Directory |
-| `_pdi_source_url` | The photo's page address on wordpress.org/photos |
-| `_pdi_source_author` | The name of the person who uploaded the photo, when the Photo Directory provides it |
-| `_pdi_imported` | A marker showing the attachment came from the Photo Directory |
+| `_photofetch_source_id` | The photo's ID on the Photo Directory |
+| `_photofetch_source_url` | The photo's page address on wordpress.org/photos |
+| `_photofetch_source_author` | The name of the person who uploaded the photo, when the Photo Directory provides it |
+| `_photofetch_imported` | A marker showing the attachment came from the Photo Directory |
 
-The plugin uses `_pdi_source_id` to prevent duplicates. Importing the same photo a second time returns the attachment that already exists instead of downloading a second copy.
+The plugin uses `_photofetch_source_id` to prevent duplicates. Importing the same photo a second time returns the attachment that already exists instead of downloading a second copy.
 
 Photos on the WordPress Photo Directory are released under CC0, so credit is optional. The stored author name and source address make it straightforward to add credit when a site chooses to.
 
@@ -127,10 +127,10 @@ Photos on the WordPress Photo Directory are released under CC0, so credit is opt
 
 ## Steps To Set Up
 
-1. Copy the `WP-Photo-Directory-Importer` folder into the site's `wp-content/plugins/` directory.
+1. Copy the `photofetch` folder into the site's `wp-content/plugins/` directory.
 2. Sign in to the WordPress admin.
 3. Go to **Plugins > Installed Plugins**.
-4. Find **Photo Directory Importer** and select **Activate**.
+4. Find **PhotoFetch** and select **Activate**.
 
 The plugin has no settings screen. It is ready to use as soon as it is active.
 
@@ -175,13 +175,13 @@ After testing, any unwanted photos can be removed from **Media > Library** the s
 
 # Troubleshooting Guide
 
-Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 1.3.17.
+Internal reference for technical support. Every issue below has been traced to the plugin's own code paths and verified against version 2.0.0.
 
 ## Problem: An Imported Photo's Title Does Not Match The Photo Directory
 
 ### Cause
 
-This is expected behavior, not a broken install. Some photos on the Photo Directory carry only a generic placeholder title (currently `Photo Detail`, `Untitled`, or `Untitled Photo`) because the original uploader never set a real one. `PDI_API::normalize_item()` in `includes/class-pdi-api.php` treats those placeholders as no title at all and works through a fallback chain instead:
+This is expected behavior, not a broken install. Some photos on the Photo Directory carry only a generic placeholder title (currently `Photo Detail`, `Untitled`, or `Untitled Photo`) because the original uploader never set a real one. `PhotoFetch_API::normalize_item()` in `includes/class-photofetch-api.php` treats those placeholders as no title at all and works through a fallback chain instead:
 
 1. A title built from the photo's descriptive sentence, cut at a word boundary and capped at 60 characters.
 2. A title built from the photo's URL slug, used only when the slug reads like words. Most Photo Directory slugs are short hex strings such as `6836a813f7`, which are skipped.
@@ -191,8 +191,8 @@ This is expected behavior, not a broken install. Some photos on the Photo Direct
 
 1. This is not a bug to fix — it is a best-effort fallback for photos with no real title upstream. Confirm the description and alt text fields hold a real, specific sentence. If they do, the import worked correctly and only the title is a generated guess.
 2. If the generated title reads awkwardly, editors can retitle the attachment by hand, or type a title into the **Title** field before importing.
-3. The character cap on description-derived titles is filterable via `pdi_description_title_length`.
-4. The list of recognized placeholder strings is filterable via `pdi_generic_title_placeholders`, in case the Photo Directory introduces a placeholder this plugin does not yet recognize.
+3. The character cap on description-derived titles is filterable via `photofetch_description_title_length`.
+4. The list of recognized placeholder strings is filterable via `photofetch_generic_title_placeholders`, in case the Photo Directory introduces a placeholder this plugin does not yet recognize.
 
 ## Problem: The Photo Directory Page, Tab, Or Button Does Not Appear
 
@@ -202,7 +202,7 @@ Every entry point is gated on the `upload_files` capability. The **Media > Photo
 
 ### Solution
 
-1. Confirm **Photo Directory Importer** is listed as active under **Plugins > Installed Plugins**.
+1. Confirm **PhotoFetch** is listed as active under **Plugins > Installed Plugins**.
 2. Confirm the reporting user's role includes **Upload Files**. Administrator, Editor, and Author roles include it by default.
 3. If a role editor plugin is in use, check whether `upload_files` has been removed from the affected role.
 4. If only the classic editor button is missing, check whether the site actually uses the classic editor. The button prints on the `media_buttons` hook, which the block editor never fires. On a block editor site this button is unreachable by design.
@@ -211,7 +211,7 @@ Every entry point is gated on the `upload_files` capability. The **Media > Photo
 
 ### Cause
 
-**Media > Photo Directory** renders an empty container and builds the whole screen in `assets/js/photo-browser.js`. That script is built against `wp-element`, WordPress's own copy of React, and mounts into the `#pdi-browser` element on `DOMContentLoaded`. If `wp.element` is unavailable, the script exits without rendering and the page stays empty.
+**Media > Photo Directory** renders an empty container and builds the whole screen in `assets/js/photo-browser.js`. That script is built against `wp-element`, WordPress's own copy of React, and mounts into the `#photofetch-browser` element on `DOMContentLoaded`. If `wp.element` is unavailable, the script exits without rendering and the page stays empty.
 
 ### Solution
 
@@ -228,7 +228,7 @@ The tab is added by `assets/js/media-modal.js`, which patches `wp.media.view.Med
 ### Solution
 
 1. Confirm the screen is a post edit screen. The tab is not added on other admin screens, including **Media > Library**.
-2. Open the browser console and look for the warning `Photo Directory Importer: could not add media modal tab.` That message means `wp.media`'s internals changed shape and the patch was skipped. The plugin fails quietly here on purpose, so the rest of the media picker keeps working.
+2. Open the browser console and look for the warning `PhotoFetch: could not add media modal tab.` That message means `wp.media`'s internals changed shape and the patch was skipped. The plugin fails quietly here on purpose, so the rest of the media picker keeps working.
 3. Confirm `media-modal.js` loads on the page, along with the `media-views` script it depends on.
 4. If a custom media frame is in use, check whether it extends `MediaFrame.Select` or `MediaFrame.Post`. Frames built from other base classes will not receive the tab.
 
@@ -236,13 +236,13 @@ The tab is added by `assets/js/media-modal.js`, which patches `wp.media.view.Med
 
 ### Cause
 
-The filter menus are populated from the directory itself, through the `pdi_terms` AJAX action, which reads the `photo-categories`, `photo-orientations`, and `photo-colors` taxonomies from wordpress.org. `PDI_API::get_filter_terms()` caches the whole set in the `pdi_filter_terms` transient for one day. Any taxonomy that fails to load returns an empty list rather than an error, so one unreachable taxonomy empties a single menu instead of breaking the screen.
+The filter menus are populated from the directory itself, through the `photofetch_terms` AJAX action, which reads the `photo-categories`, `photo-orientations`, and `photo-colors` taxonomies from wordpress.org. `PhotoFetch_API::get_filter_terms()` caches the whole set in the `photofetch_filter_terms` transient for one day. Any taxonomy that fails to load returns an empty list rather than an error, so one unreachable taxonomy empties a single menu instead of breaking the screen.
 
 ### Solution
 
 1. Confirm the site can reach `https://wordpress.org/photos/wp-json/wp/v2/photo-categories` from the server.
-2. Delete the `pdi_filter_terms` transient to force a fresh fetch, rather than waiting out the one-day cache.
-3. Open the browser network tab and inspect the `admin-ajax.php` request with `action=pdi_terms`. An empty list for one taxonomy points at that upstream endpoint.
+2. Delete the `photofetch_filter_terms` transient to force a fresh fetch, rather than waiting out the one-day cache.
+3. Open the browser network tab and inspect the `admin-ajax.php` request with `action=photofetch_terms`. An empty list for one taxonomy points at that upstream endpoint.
 4. Note that the color swatches appear only on the browse screen. The media picker tab offers category, orientation, and sort, and does not include a color filter.
 
 ## Problem: The Search Grid Reports That WordPress.org Could Not Be Reached
@@ -253,8 +253,8 @@ This is the generic error state used when the AJAX request fails, when the serve
 
 ### Solution
 
-1. Select **Try again** in the error notice. A stale `pdi_nonce` returns a failure that clears on reload, so reloading the admin page also resolves it.
-2. Open the browser network tab and inspect the `admin-ajax.php` request with `action=pdi_search`. The response body carries the real message.
+1. Select **Try again** in the error notice. A stale `photofetch_nonce` returns a failure that clears on reload, so reloading the admin page also resolves it.
+2. Open the browser network tab and inspect the `admin-ajax.php` request with `action=photofetch_search`. The response body carries the real message.
 3. A response of `-1` with HTTP 403 is a rejected security token. A JSON body with a permission message is a capability problem; see the section above.
 4. If the response reports an HTTP status from the Photo Directory, the upstream API returned an error. Confirm the site can reach `https://wordpress.org/photos/wp-json/wp/v2/photos` from the server, not just from the browser.
 5. Check whether the site defines `WP_HTTP_BLOCK_EXTERNAL` in `wp-config.php`. If it does, add `wordpress.org` to `WP_ACCESSIBLE_HOSTS`.
@@ -277,7 +277,7 @@ The plugin passes the search term and any active filters straight to the upstrea
 
 ### Cause
 
-This is expected behavior. The upstream API rejects a relevance ordering when no search term is supplied, returning HTTP 400. `PDI_API::normalize_filters()` therefore degrades relevance to a date ordering whenever the search box is empty, which keeps the browse screen working instead of erroring.
+This is expected behavior. The upstream API rejects a relevance ordering when no search term is supplied, returning HTTP 400. `PhotoFetch_API::normalize_filters()` therefore degrades relevance to a date ordering whenever the search box is empty, which keeps the browse screen working instead of erroring.
 
 ### Solution
 
@@ -288,7 +288,7 @@ This is expected behavior. The upstream API rejects a relevance ordering when no
 
 ### Cause
 
-The Photo Directory REST API is public but not formally documented, so its response shape can change. `PDI_API::normalize_item()` in `includes/class-pdi-api.php` checks four possible locations for image size data, in order:
+The Photo Directory REST API is public but not formally documented, so its response shape can change. `PhotoFetch_API::normalize_item()` in `includes/class-photofetch-api.php` checks four possible locations for image size data, in order:
 
 1. `media_details.sizes` on the item itself
 2. `media_details.sizes` on the embedded `wp:featuredmedia` object, then that object's bare `source_url`
@@ -308,14 +308,14 @@ When none of these produce a URL, the photo has no thumbnail in the grid, and an
 
 ### Cause
 
-`PDI_Importer::is_allowed_image_host()` requires an image's URL to be on `wordpress.org`, `wp.com`, or `w.org` (or a subdomain of any of them) before it's downloaded — a deliberate security check, not a bug. The Photo Directory's images are actually served from `pd.w.org`, WordPress.org's own short domain (the same family as `s.w.org`). The check only fires if a photo's image URL resolves to some other host entirely.
+`PhotoFetch_Importer::is_allowed_image_host()` requires an image's URL to be on `wordpress.org`, `wp.com`, or `w.org` (or a subdomain of any of them) before it's downloaded — a deliberate security check, not a bug. The Photo Directory's images are actually served from `pd.w.org`, WordPress.org's own short domain (the same family as `s.w.org`). The check only fires if a photo's image URL resolves to some other host entirely.
 
 ### Solution
 
 1. The error message includes the actual rejected hostname — no need to inspect network requests to find it.
-2. If that host is a legitimate part of the Photo Directory's infrastructure, add it via the `pdi_allowed_image_hosts` filter:
+2. If that host is a legitimate part of the Photo Directory's infrastructure, add it via the `photofetch_allowed_image_hosts` filter:
    ```php
-   add_filter( 'pdi_allowed_image_hosts', function ( $hosts ) {
+   add_filter( 'photofetch_allowed_image_hosts', function ( $hosts ) {
        $hosts[] = 'the-new-host.example';
        return $hosts;
    } );
@@ -326,7 +326,7 @@ When none of these produce a URL, the photo has no thumbnail in the grid, and an
 
 ### Cause
 
-This is expected on a server whose image editor (GD or Imagick, whichever core registered) can't produce WebP — checked live via `wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) )`, not assumed from PHP version. `PDI_Settings::supported_formats()` deliberately gates on WebP specifically: if it isn't available, no picker is shown at all (not even for AVIF alone), and imported photos keep their original format, same as before this feature existed.
+This is expected on a server whose image editor (GD or Imagick, whichever core registered) can't produce WebP — checked live via `wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) )`, not assumed from PHP version. `PhotoFetch_Settings::supported_formats()` deliberately gates on WebP specifically: if it isn't available, no picker is shown at all (not even for AVIF alone), and imported photos keep their original format, same as before this feature existed.
 
 ### Solution
 
@@ -375,12 +375,12 @@ Two things can reduce the stored size. The first is the **Import size** setting,
 
 ### Cause
 
-Duplicate protection relies on a lookup against the `_pdi_source_id` attachment meta key. If that meta value was removed, changed, or lost during a migration, the plugin treats the photo as new and downloads it again.
+Duplicate protection relies on a lookup against the `_photofetch_source_id` attachment meta key. If that meta value was removed, changed, or lost during a migration, the plugin treats the photo as new and downloads it again.
 
 ### Solution
 
-1. Query the `postmeta` table for `_pdi_source_id` and confirm the value matches the upstream photo ID.
-2. If the meta is missing on a previously imported attachment, re-adding `_pdi_source_id` with the correct photo ID restores duplicate detection for that photo.
+1. Query the `postmeta` table for `_photofetch_source_id` and confirm the value matches the upstream photo ID.
+2. If the meta is missing on a previously imported attachment, re-adding `_photofetch_source_id` with the correct photo ID restores duplicate detection for that photo.
 3. Remove any extra copies from **Media > Library**.
 
 ## Problem: A Caption Is Empty Or Holds No Photographer Credit
@@ -392,9 +392,9 @@ The credit line is written only when the Photo Directory supplies an author name
 ### Solution
 
 1. Confirm the photo has an author name on its page at wordpress.org/photos. Photos with no author name receive no credit line.
-2. Check the `_pdi_source_author` meta on the attachment. When it holds a name, the caption can be filled in by hand.
+2. Check the `_photofetch_source_author` meta on the attachment. When it holds a name, the caption can be filled in by hand.
 3. Confirm **Add photographer credit to caption** is selected in the tray before running the import.
-4. The wording of the credit line is filterable via `pdi_credit_line`.
+4. The wording of the credit line is filterable via `photofetch_credit_line`.
 
 ## Problem: The "Use As Featured Image" Button Is Missing
 
@@ -417,18 +417,18 @@ These affect the plugin's own bundled files, not site behavior. They are worth c
 
 | File | Issue |
 |---|---|
-| `photo-directory-importer.php` | The **Plugin URI** and **Author URI** headers still contain the placeholder `your-username`. |
+| `photofetch.php` | The **Plugin URI** and **Author URI** headers still contain the placeholder `your-username`. |
 | `readme.txt` | The **Contributors** list omits `michelleames`, who is named in the plugin header's **Author** field. |
 | `readme.txt` | The developer notes describe the title fallback as slug-derived and state that the browse grid does not display titles. Both describe earlier behavior. |
 | `assets/js/block-editor.js` | The file is never registered or enqueued, so the block editor sidebar panel it defines is unreachable. |
 
 ## Additional Resources
 
-- Photo Directory Importer User Guide
-- Photo Directory Importer Feature Overview
+- PhotoFetch User Guide
+- PhotoFetch Feature Overview
 - WordPress Photo Directory: `https://wordpress.org/photos`
 - Upstream API endpoint: `https://wordpress.org/photos/wp-json/wp/v2/photos`
-- Key files: `includes/class-pdi-api.php`, `includes/class-pdi-importer.php`, `includes/class-pdi-plugin.php`, `assets/js/photo-browser.js`, `assets/js/media-modal.js`
+- Key files: `includes/class-photofetch-api.php`, `includes/class-photofetch-importer.php`, `includes/class-photofetch-plugin.php`, `assets/js/photo-browser.js`, `assets/js/media-modal.js`
 
 ---
 ---
@@ -437,7 +437,7 @@ These affect the plugin's own bundled files, not site behavior. They are worth c
 
 ## Overview
 
-The Photo Directory Importer brings the WordPress Photo Directory into the WordPress admin. The Photo Directory is a community photo library hosted at wordpress.org/photos, and every photo in it is released under the CC0 license. CC0 photos can be used for any purpose, including commercial work, with no license fee and no required credit.
+The PhotoFetch brings the WordPress Photo Directory into the WordPress admin. The Photo Directory is a community photo library hosted at wordpress.org/photos, and every photo in it is released under the CC0 license. CC0 photos can be used for any purpose, including commercial work, with no license fee and no required credit.
 
 The plugin lets site editors search that library and add photos to their own site without visiting an external site, downloading a file, and uploading it again. Imported photos become standard Media Library items and behave like any other uploaded image.
 

@@ -1,4 +1,4 @@
-/* global PDI_Browser */
+/* global PhotoFetch_Browser */
 /**
  * Browse and import UI for Media > Photo Directory.
  *
@@ -26,7 +26,7 @@
 	var useRef     = wp.element.useRef;
 	var useMemo    = wp.element.useMemo;
 
-	var settings = window.PDI_Browser || {};
+	var settings = window.PhotoFetch_Browser || {};
 	var strings  = settings.strings || {};
 
 	var TAX_CATEGORY    = 'photo-categories';
@@ -71,7 +71,7 @@
 	 */
 	function ni18n( single, plural, count ) {
 		if ( wp.i18n && wp.i18n._n ) {
-			return wp.i18n._n( single, plural, count, 'photo-directory-importer' );
+			return wp.i18n._n( single, plural, count, 'photofetch' );
 		}
 		return 1 === count ? single : plural;
 	}
@@ -289,15 +289,15 @@
 	function PageHeader() {
 		return h(
 			'div',
-			{ className: 'pdi-header' },
+			{ className: 'photofetch-header' },
 			h(
 				'div',
-				{ className: 'pdi-header__text' },
-				h( 'h1', { className: 'pdi-header__title' }, strings.title ),
-				h( 'p', { className: 'pdi-header__description' }, strings.description )
+				{ className: 'photofetch-header__text' },
+				h( 'h1', { className: 'photofetch-header__title' }, strings.title ),
+				h( 'p', { className: 'photofetch-header__description' }, strings.description )
 			),
 			settings.settingsUrl
-				? h( 'a', { className: 'pdi-header__settings', href: settings.settingsUrl }, strings.importSettings )
+				? h( 'a', { className: 'photofetch-header__settings', href: settings.settingsUrl }, strings.importSettings )
 				: null
 		);
 	}
@@ -305,14 +305,14 @@
 	function SearchRow( props ) {
 		return h(
 			'div',
-			{ className: 'pdi-search' },
+			{ className: 'photofetch-search' },
 			h(
 				'div',
-				{ className: 'pdi-search__field' },
-				h( 'span', { className: 'dashicons dashicons-search pdi-search__icon', 'aria-hidden': 'true' } ),
+				{ className: 'photofetch-search__field' },
+				h( 'span', { className: 'dashicons dashicons-search photofetch-search__icon', 'aria-hidden': 'true' } ),
 				h( 'input', {
 					type: 'search',
-					className: 'pdi-search__input',
+					className: 'photofetch-search__input',
 					value: props.value,
 					placeholder: strings.searchPlaceholder,
 					'aria-label': strings.searchLabel,
@@ -329,7 +329,7 @@
 			),
 			h(
 				'button',
-				{ type: 'button', className: 'button button-primary pdi-search__submit', onClick: props.onSubmit },
+				{ type: 'button', className: 'button button-primary photofetch-search__submit', onClick: props.onSubmit },
 				strings.search
 			)
 		);
@@ -339,7 +339,7 @@
 		return h(
 			'select',
 			{
-				className: 'pdi-select',
+				className: 'photofetch-select',
 				value: props.value,
 				'aria-label': props.label,
 				onChange: function ( event ) {
@@ -361,14 +361,14 @@
 
 		return h(
 			'div',
-			{ className: 'pdi-colors', role: 'group', 'aria-label': strings.colorLabel },
-			h( 'span', { className: 'pdi-colors__label' }, strings.colorLabel ),
+			{ className: 'photofetch-colors', role: 'group', 'aria-label': strings.colorLabel },
+			h( 'span', { className: 'photofetch-colors__label' }, strings.colorLabel ),
 			props.terms.map( function ( term ) {
 				var selected = props.value === term.id;
 				return h( 'button', {
 					key: term.id,
 					type: 'button',
-					className: 'pdi-swatch' + ( selected ? ' is-selected' : '' ),
+					className: 'photofetch-swatch' + ( selected ? ' is-selected' : '' ),
 					style: { backgroundColor: term.hex || '#f6f7f7' },
 					title: term.name,
 					'aria-label': format( strings.colorSwatch, [ term.name ] ),
@@ -386,7 +386,7 @@
 
 		return h(
 			'div',
-			{ className: 'pdi-filters' },
+			{ className: 'photofetch-filters' },
 			h( TermSelect, {
 				terms: props.terms[ TAX_CATEGORY ] || [],
 				value: filters.category,
@@ -415,7 +415,7 @@
 			h(
 				'select',
 				{
-					className: 'pdi-select',
+					className: 'photofetch-select',
 					value: filters.sort,
 					'aria-label': strings.sortLabel,
 					onChange: function ( event ) {
@@ -425,7 +425,7 @@
 				h( 'option', { value: 'relevance' }, strings.sortRelevance ),
 				h( 'option', { value: 'date' }, strings.sortNewest )
 			),
-			h( 'span', { className: 'pdi-filters__count' }, props.count )
+			h( 'span', { className: 'photofetch-filters__count' }, props.count )
 		);
 	}
 
@@ -436,25 +436,25 @@
 
 		return h(
 			'div',
-			{ className: 'pdi-chips' },
-			h( 'span', { className: 'pdi-chips__label' }, strings.filtersLabel ),
+			{ className: 'photofetch-chips' },
+			h( 'span', { className: 'photofetch-chips__label' }, strings.filtersLabel ),
 			props.chips.map( function ( chip ) {
 				return h(
 					'button',
 					{
 						key: chip.key,
 						type: 'button',
-						className: 'pdi-chip',
+						className: 'photofetch-chip',
 						'aria-label': format( strings.removeFilter, [ chip.label ] ),
 						onClick: function () {
 							props.onRemove( chip.key );
 						},
 					},
 					chip.label,
-					h( 'span', { className: 'pdi-chip__remove', 'aria-hidden': 'true' }, '×' )
+					h( 'span', { className: 'photofetch-chip__remove', 'aria-hidden': 'true' }, '×' )
 				);
 			} ),
-			h( 'button', { type: 'button', className: 'pdi-chips__clear', onClick: props.onClear }, strings.clearAll )
+			h( 'button', { type: 'button', className: 'photofetch-chips__clear', onClick: props.onClear }, strings.clearAll )
 		);
 	}
 
@@ -462,18 +462,18 @@
 		var notice = props.notice;
 		return h(
 			'div',
-			{ className: 'notice pdi-notice pdi-notice--' + notice.type, role: 'status' },
+			{ className: 'notice photofetch-notice photofetch-notice--' + notice.type, role: 'status' },
 			h(
 				'div',
-				{ className: 'pdi-notice__text' },
+				{ className: 'photofetch-notice__text' },
 				h( 'strong', null, notice.title ),
-				notice.message ? h( 'span', { className: 'pdi-notice__detail' }, notice.message ) : null
+				notice.message ? h( 'span', { className: 'photofetch-notice__detail' }, notice.message ) : null
 			),
 			notice.actionLabel
 				? h(
 						notice.actionUrl ? 'a' : 'button',
 						{
-							className: notice.actionUrl ? 'pdi-notice__link' : 'button pdi-notice__button',
+							className: notice.actionUrl ? 'photofetch-notice__link' : 'button photofetch-notice__button',
 							href: notice.actionUrl || null,
 							type: notice.actionUrl ? null : 'button',
 							onClick: notice.onAction || null,
@@ -490,41 +490,41 @@
 			cards.push(
 				h(
 					'div',
-					{ key: i, className: 'pdi-card pdi-card--skeleton', 'aria-hidden': 'true' },
-					h( 'div', { className: 'pdi-skeleton__thumb' } ),
+					{ key: i, className: 'photofetch-card photofetch-card--skeleton', 'aria-hidden': 'true' },
+					h( 'div', { className: 'photofetch-skeleton__thumb' } ),
 					h(
 						'div',
-						{ className: 'pdi-skeleton__body' },
-						h( 'span', { className: 'pdi-skeleton__bar pdi-skeleton__bar--wide' } ),
-						h( 'span', { className: 'pdi-skeleton__bar pdi-skeleton__bar--narrow' } )
+						{ className: 'photofetch-skeleton__body' },
+						h( 'span', { className: 'photofetch-skeleton__bar photofetch-skeleton__bar--wide' } ),
+						h( 'span', { className: 'photofetch-skeleton__bar photofetch-skeleton__bar--narrow' } )
 					)
 				)
 			);
 		}
-		return h( 'div', { className: 'pdi-grid', 'aria-busy': 'true' }, cards );
+		return h( 'div', { className: 'photofetch-grid', 'aria-busy': 'true' }, cards );
 	}
 
 	function EmptyState( props ) {
 		return h(
 			'div',
-			{ className: 'pdi-empty' },
+			{ className: 'photofetch-empty' },
 			h(
 				'h2',
-				{ className: 'pdi-empty__title' },
+				{ className: 'photofetch-empty__title' },
 				props.query ? format( strings.emptyTitle, [ props.query ] ) : strings.emptyTitleFiltered
 			),
-			h( 'p', { className: 'pdi-empty__body' }, strings.emptyBody ),
+			h( 'p', { className: 'photofetch-empty__body' }, strings.emptyBody ),
 			props.suggestions.length
 				? h(
 						'div',
-						{ className: 'pdi-empty__suggestions' },
+						{ className: 'photofetch-empty__suggestions' },
 						props.suggestions.map( function ( suggestion ) {
 							return h(
 								'button',
 								{
 									key: suggestion,
 									type: 'button',
-									className: 'pdi-suggestion',
+									className: 'photofetch-suggestion',
 									onClick: function () {
 										props.onSuggest( suggestion );
 									},
@@ -547,14 +547,14 @@
 		return h(
 			'div',
 			{
-				className: 'pdi-card' + ( props.selected ? ' is-selected' : '' ),
+				className: 'photofetch-card' + ( props.selected ? ' is-selected' : '' ),
 				onClick: function () {
 					props.onToggle( photo );
 				},
 			},
 			h(
 				'div',
-				{ className: 'pdi-card__thumb' },
+				{ className: 'photofetch-card__thumb' },
 				photo.thumbUrl
 					? h( 'img', { src: photo.thumbUrl, alt: photo.alt || photo.title, loading: 'lazy' } )
 					: null,
@@ -564,7 +564,7 @@
 				// duplicates it.
 				h( 'input', {
 					type: 'checkbox',
-					className: 'pdi-card__check',
+					className: 'photofetch-card__check',
 					checked: !! props.selected,
 					'aria-label': format( strings.selectPhoto, [ photo.title ] ),
 					onClick: function ( event ) {
@@ -574,21 +574,21 @@
 						props.onToggle( photo );
 					},
 				} ),
-				attachmentId ? h( 'span', { className: 'pdi-card__badge' }, strings.inLibrary ) : null
+				attachmentId ? h( 'span', { className: 'photofetch-card__badge' }, strings.inLibrary ) : null
 			),
 			h(
 				'div',
-				{ className: 'pdi-card__body' },
-				h( 'span', { className: 'pdi-card__title', title: photo.title }, photo.title ),
-				meta ? h( 'span', { className: 'pdi-card__meta' }, meta ) : null,
+				{ className: 'photofetch-card__body' },
+				h( 'span', { className: 'photofetch-card__title', title: photo.title }, photo.title ),
+				meta ? h( 'span', { className: 'photofetch-card__meta' }, meta ) : null,
 				h(
 					'div',
-					{ className: 'pdi-card__actions' },
+					{ className: 'photofetch-card__actions' },
 					attachmentId
 						? h(
 								'a',
 								{
-									className: 'pdi-card__link',
+									className: 'photofetch-card__link',
 									href: props.libraryUrl,
 									onClick: function ( event ) {
 										event.stopPropagation();
@@ -600,7 +600,7 @@
 								'button',
 								{
 									type: 'button',
-									className: 'pdi-card__import',
+									className: 'photofetch-card__import',
 									disabled: props.importing,
 									onClick: function ( event ) {
 										event.stopPropagation();
@@ -613,7 +613,7 @@
 						'button',
 						{
 							type: 'button',
-							className: 'pdi-card__viewfull',
+							className: 'photofetch-card__viewfull',
 							onClick: function ( event ) {
 								event.stopPropagation();
 								props.onViewFull( photo );
@@ -659,7 +659,7 @@
 		return h(
 			'div',
 			{
-				className: 'pdi-lightbox',
+				className: 'photofetch-lightbox',
 				onClick: function ( event ) {
 					if ( event.target === event.currentTarget ) {
 						props.onClose();
@@ -668,34 +668,34 @@
 			},
 			h(
 				'div',
-				{ className: 'pdi-lightbox__frame' },
+				{ className: 'photofetch-lightbox__frame' },
 				h(
 					'button',
 					{
 						ref: closeRef,
 						type: 'button',
-						className: 'pdi-lightbox__close',
+						className: 'photofetch-lightbox__close',
 						'aria-label': strings.close,
 						onClick: props.onClose,
 					},
 					'×'
 				),
-				imageUrl ? h( 'img', { className: 'pdi-lightbox__image', src: imageUrl, alt: photo.alt || photo.title } ) : null,
+				imageUrl ? h( 'img', { className: 'photofetch-lightbox__image', src: imageUrl, alt: photo.alt || photo.title } ) : null,
 				h(
 					'div',
-					{ className: 'pdi-lightbox__footer' },
-					h( 'span', { className: 'pdi-lightbox__title' }, photo.title ),
+					{ className: 'photofetch-lightbox__footer' },
+					h( 'span', { className: 'photofetch-lightbox__title' }, photo.title ),
 					props.attachmentId
 						? h(
 								'a',
-								{ className: 'pdi-lightbox__link', href: props.libraryUrl },
+								{ className: 'photofetch-lightbox__link', href: props.libraryUrl },
 								strings.viewInLibrary
 						  )
 						: h(
 								'button',
 								{
 									type: 'button',
-									className: 'pdi-lightbox__import',
+									className: 'photofetch-lightbox__import',
 									disabled: props.importing,
 									onClick: function () {
 										props.onImport( photo );
@@ -713,14 +713,14 @@
 	function DetailsPanel( props ) {
 		return h(
 			'div',
-			{ className: 'pdi-tray__details' },
+			{ className: 'photofetch-tray__details' },
 			props.photos.map( function ( photo ) {
 				var edit = props.edits[ photo.id ] || {};
 
 				function field( name, label, placeholder, fallback ) {
 					return h( 'input', {
 						type: 'text',
-						className: 'pdi-tray__input',
+						className: 'photofetch-tray__input',
 						'aria-label': label + ': ' + photo.title,
 						placeholder: placeholder || label,
 						value: 'undefined' !== typeof edit[ name ] ? edit[ name ] : fallback || '',
@@ -732,8 +732,8 @@
 
 				return h(
 					'div',
-					{ key: photo.id, className: 'pdi-tray__row' },
-					h( 'img', { className: 'pdi-tray__rowthumb', src: photo.thumbUrl, alt: '' } ),
+					{ key: photo.id, className: 'photofetch-tray__row' },
+					h( 'img', { className: 'photofetch-tray__rowthumb', src: photo.thumbUrl, alt: '' } ),
 					field( 'title', strings.fieldTitle, strings.fieldTitle, photo.title ),
 					field( 'alt', strings.fieldAlt, strings.fieldAltPlaceholder, photo.alt ),
 					field( 'caption', strings.fieldCaption, strings.fieldCaption, '' )
@@ -748,13 +748,13 @@
 
 		return h(
 			'div',
-			{ className: 'pdi-tray__progress' },
+			{ className: 'photofetch-tray__progress' },
 			h(
 				'div',
-				{ className: 'pdi-tray__progressrow' },
+				{ className: 'photofetch-tray__progressrow' },
 				h(
 					'span',
-					{ className: 'pdi-tray__progresstext', role: 'status' },
+					{ className: 'photofetch-tray__progresstext', role: 'status' },
 					format( strings.importProgress, [
 						Math.min( job.completed + 1, job.total ),
 						job.total,
@@ -763,14 +763,14 @@
 				),
 				h(
 					'button',
-					{ type: 'button', className: 'pdi-tray__cancel', onClick: props.onCancel },
+					{ type: 'button', className: 'photofetch-tray__cancel', onClick: props.onCancel },
 					strings.cancel
 				)
 			),
 			h(
 				'div',
-				{ className: 'pdi-tray__track' },
-				h( 'div', { className: 'pdi-tray__fill', style: { width: percent + '%' } } )
+				{ className: 'photofetch-tray__track' },
+				h( 'div', { className: 'photofetch-tray__fill', style: { width: percent + '%' } } )
 			)
 		);
 	}
@@ -781,31 +781,31 @@
 
 		return h(
 			'div',
-			{ className: 'pdi-tray', role: 'region', 'aria-label': strings.trayLabel },
+			{ className: 'photofetch-tray', role: 'region', 'aria-label': strings.trayLabel },
 			h(
 				'div',
-				{ className: 'pdi-tray__main' },
+				{ className: 'photofetch-tray__main' },
 				h(
 					'div',
-					{ className: 'pdi-tray__selection' },
+					{ className: 'photofetch-tray__selection' },
 					h(
 						'span',
-						{ className: 'pdi-tray__count' },
+						{ className: 'photofetch-tray__count' },
 						format( ni18n( '%s selected', '%s selected', photos.length ), [ photos.length ] )
 					),
 					h(
 						'div',
-						{ className: 'pdi-tray__thumbs' },
+						{ className: 'photofetch-tray__thumbs' },
 						photos.map( function ( photo ) {
 							return h(
 								'span',
-								{ key: photo.id, className: 'pdi-tray__thumb' },
+								{ key: photo.id, className: 'photofetch-tray__thumb' },
 								h( 'img', { src: photo.thumbUrl, alt: '' } ),
 								h(
 									'button',
 									{
 										type: 'button',
-										className: 'pdi-tray__remove',
+										className: 'photofetch-tray__remove',
 										'aria-label': format( strings.deselectPhoto, [ photo.title ] ),
 										disabled: running,
 										onClick: function () {
@@ -820,15 +820,15 @@
 				),
 				h(
 					'div',
-					{ className: 'pdi-tray__controls' },
+					{ className: 'photofetch-tray__controls' },
 					h(
 						'label',
-						{ className: 'pdi-tray__field' },
-						h( 'span', { className: 'pdi-tray__label' }, strings.importSize ),
+						{ className: 'photofetch-tray__field' },
+						h( 'span', { className: 'photofetch-tray__label' }, strings.importSize ),
 						h(
 							'select',
 							{
-								className: 'pdi-select',
+								className: 'photofetch-select',
 								value: props.defaults.size,
 								disabled: running,
 								onChange: function ( event ) {
@@ -842,7 +842,7 @@
 					),
 					h(
 						'label',
-						{ className: 'pdi-tray__checkbox' },
+						{ className: 'photofetch-tray__checkbox' },
 						h( 'input', {
 							type: 'checkbox',
 							checked: props.defaults.addCredit,
@@ -857,7 +857,7 @@
 						'button',
 						{
 							type: 'button',
-							className: 'pdi-tray__toggle',
+							className: 'photofetch-tray__toggle',
 							disabled: running,
 							onClick: props.onToggleDetails,
 						},
@@ -867,7 +867,7 @@
 						'button',
 						{
 							type: 'button',
-							className: 'button button-primary pdi-tray__import',
+							className: 'button button-primary photofetch-tray__import',
 							disabled: running,
 							onClick: props.onImport,
 						},
@@ -910,7 +910,7 @@
 		var cancelled = useRef( false );
 
 		useEffect( function () {
-			ajax( 'pdi_terms' ).then( function ( response ) {
+			ajax( 'photofetch_terms' ).then( function ( response ) {
 				if ( response && response.success ) {
 					setTerms( response.data );
 				}
@@ -936,7 +936,7 @@
 				var append  = state.page > 1;
 				var current = ++requestId.current;
 
-				ajax( 'pdi_search', {
+				ajax( 'photofetch_search', {
 					search: state.query,
 					page: state.page,
 					category: state.filters.category,
@@ -969,7 +969,7 @@
 		function importPhoto( photo ) {
 			dispatch( { type: 'IMPORT_START', ids: [ photo.id ] } );
 
-			ajax( 'pdi_import', { photo_id: photo.id, size: 'full' } )
+			ajax( 'photofetch_import', { photo_id: photo.id, size: 'full' } )
 				.then( function ( response ) {
 					if ( ! response || ! response.success ) {
 						dispatch( {
@@ -1089,7 +1089,7 @@
 
 				dispatch( { type: 'JOB_PROGRESS', progress: { completed: index, currentFile: photo.title } } );
 
-				ajax( 'pdi_import', {
+				ajax( 'photofetch_import', {
 					photo_id: photo.id,
 					size: defaults.size,
 					add_credit: defaults.addCredit ? '1' : '0',
@@ -1237,10 +1237,10 @@
 				: null,
 			h(
 				'div',
-				{ className: 'pdi-results' },
+				{ className: 'photofetch-results' },
 				h(
 					'div',
-					{ className: 'pdi-results__heading' },
+					{ className: 'photofetch-results__heading' },
 					h(
 						'h2',
 						null,
@@ -1248,7 +1248,7 @@
 					),
 					h(
 						'span',
-						{ className: 'pdi-results__hint' },
+						{ className: 'photofetch-results__hint' },
 						state.selected.length
 							? format(
 									ni18n(
@@ -1265,7 +1265,7 @@
 								'button',
 								{
 									type: 'button',
-									className: 'pdi-results__clear',
+									className: 'photofetch-results__clear',
 									onClick: function () {
 										dispatch( { type: 'CLEAR_SELECTION' } );
 									},
@@ -1288,7 +1288,7 @@
 				! isLoading && state.results.length
 					? h(
 							'div',
-							{ className: 'pdi-grid' },
+							{ className: 'photofetch-grid' },
 							state.results.map( function ( photo ) {
 								var attachmentId = state.importedMap[ photo.id ];
 								return h( PhotoCard, {
@@ -1312,12 +1312,12 @@
 				state.hasMore && ! isLoading
 					? h(
 							'div',
-							{ className: 'pdi-pagination' },
+							{ className: 'photofetch-pagination' },
 							h(
 								'button',
 								{
 									type: 'button',
-									className: 'pdi-load-more',
+									className: 'photofetch-load-more',
 									disabled: 'loadingMore' === state.status,
 									onClick: function () {
 										dispatch( { type: 'LOAD_MORE' } );
@@ -1327,7 +1327,7 @@
 							),
 							h(
 								'span',
-								{ className: 'pdi-pagination__count' },
+								{ className: 'photofetch-pagination__count' },
 								format( strings.showingCount, [
 									formatNumber( state.results.length ),
 									formatNumber( state.total ),
@@ -1383,7 +1383,7 @@
 	// ---------------------------------------------------------------- mount
 
 	document.addEventListener( 'DOMContentLoaded', function () {
-		var node = document.getElementById( 'pdi-browser' );
+		var node = document.getElementById( 'photofetch-browser' );
 		if ( ! node ) {
 			return;
 		}

@@ -1,4 +1,4 @@
-/* global wp, PDI_Modal */
+/* global wp, PhotoFetch_Modal */
 /**
  * "Photo Directory" tab inside the native wp.media modal.
  *
@@ -18,9 +18,9 @@
 	}
 
 	var media   = wp.media;
-	var S       = window.PDI_Modal || {};
+	var S       = window.PhotoFetch_Modal || {};
 	var strings = S.strings || {};
-	var TAB_ID  = 'pdi-photo-directory';
+	var TAB_ID  = 'photofetch-photo-directory';
 
 	var TAX_CATEGORY    = 'photo-categories';
 	var TAX_ORIENTATION = 'photo-orientations';
@@ -52,7 +52,7 @@
 	 */
 	function ni18n( single, plural, count ) {
 		if ( wp.i18n && wp.i18n._n ) {
-			return wp.i18n._n( single, plural, count, 'photo-directory-importer' );
+			return wp.i18n._n( single, plural, count, 'photofetch' );
 		}
 		return 1 === count ? single : plural;
 	}
@@ -118,7 +118,7 @@
 	// ----------------------------------------------------------- the content
 
 	var ContentView = media.View.extend( {
-		className: 'pdi-tab',
+		className: 'photofetch-tab',
 
 		initialize: function () {
 			this.terms   = {};
@@ -142,18 +142,18 @@
 		render: function () {
 			media.View.prototype.render.apply( this, arguments );
 
-			this.gridEl    = el( 'div', { class: 'pdi-tab__grid' } );
-			this.statusEl  = el( 'div', { class: 'pdi-tab__status' } );
-			this.moreEl    = el( 'div', { class: 'pdi-tab__more' } );
-			this.sidebarEl = el( 'div', { class: 'pdi-tab__sidebar' } );
-			this.footerEl  = el( 'div', { class: 'pdi-tab__footer' } );
+			this.gridEl    = el( 'div', { class: 'photofetch-tab__grid' } );
+			this.statusEl  = el( 'div', { class: 'photofetch-tab__status' } );
+			this.moreEl    = el( 'div', { class: 'photofetch-tab__more' } );
+			this.sidebarEl = el( 'div', { class: 'photofetch-tab__sidebar' } );
+			this.footerEl  = el( 'div', { class: 'photofetch-tab__footer' } );
 
-			var browse = el( 'div', { class: 'pdi-tab__browse' }, [
+			var browse = el( 'div', { class: 'photofetch-tab__browse' }, [
 				this.renderControls(),
-				el( 'div', { class: 'pdi-tab__scroll' }, [ this.statusEl, this.gridEl, this.moreEl ] ),
+				el( 'div', { class: 'photofetch-tab__scroll' }, [ this.statusEl, this.gridEl, this.moreEl ] ),
 			] );
 
-			this.el.appendChild( el( 'div', { class: 'pdi-tab__main' }, [ browse, this.sidebarEl ] ) );
+			this.el.appendChild( el( 'div', { class: 'photofetch-tab__main' }, [ browse, this.sidebarEl ] ) );
 			this.el.appendChild( this.footerEl );
 
 			this.renderSidebar();
@@ -169,7 +169,7 @@
 
 			this.searchEl = el( 'input', {
 				type: 'search',
-				class: 'pdi-tab__search',
+				class: 'photofetch-tab__search',
 				placeholder: strings.searchPlaceholder,
 				'aria-label': strings.searchLabel,
 			} );
@@ -200,7 +200,7 @@
 				self.fetch( true );
 			} );
 
-			this.sortEl = el( 'select', { class: 'pdi-tab__select', 'aria-label': strings.sortLabel }, [
+			this.sortEl = el( 'select', { class: 'photofetch-tab__select', 'aria-label': strings.sortLabel }, [
 				el( 'option', { value: 'relevance', text: strings.sortRelevance } ),
 				el( 'option', { value: 'date', text: strings.sortNewest } ),
 			] );
@@ -209,9 +209,9 @@
 				self.fetch( true );
 			} );
 
-			return el( 'div', { class: 'pdi-tab__controls' }, [
-				el( 'div', { class: 'pdi-tab__searchwrap' }, [
-					el( 'span', { class: 'dashicons dashicons-search pdi-tab__searchicon', 'aria-hidden': 'true' } ),
+			return el( 'div', { class: 'photofetch-tab__controls' }, [
+				el( 'div', { class: 'photofetch-tab__searchwrap' }, [
+					el( 'span', { class: 'dashicons dashicons-search photofetch-tab__searchicon', 'aria-hidden': 'true' } ),
 					this.searchEl,
 				] ),
 				this.categoryEl,
@@ -221,7 +221,7 @@
 		},
 
 		buildSelect: function ( anyLabel, onChange ) {
-			var select = el( 'select', { class: 'pdi-tab__select', 'aria-label': anyLabel }, [
+			var select = el( 'select', { class: 'photofetch-tab__select', 'aria-label': anyLabel }, [
 				el( 'option', { value: '0', text: anyLabel } ),
 			] );
 			select.addEventListener( 'change', function () {
@@ -232,7 +232,7 @@
 
 		loadTerms: function () {
 			var self = this;
-			ajax( 'pdi_terms' ).then( function ( response ) {
+			ajax( 'photofetch_terms' ).then( function ( response ) {
 				if ( ! response || ! response.success ) {
 					return;
 				}
@@ -263,7 +263,7 @@
 			}
 			this.moreEl.innerHTML = '';
 
-			ajax( 'pdi_search', {
+			ajax( 'photofetch_search', {
 				search: this.query,
 				page: this.page,
 				category: this.filters.category,
@@ -311,7 +311,7 @@
 			if ( ! this.hasMore ) {
 				return;
 			}
-			var button = el( 'button', { type: 'button', class: 'button pdi-tab__loadmore', text: strings.loadMore } );
+			var button = el( 'button', { type: 'button', class: 'button photofetch-tab__loadmore', text: strings.loadMore } );
 			button.addEventListener( 'click', function () {
 				if ( self.busy ) {
 					return;
@@ -340,22 +340,22 @@
 			var selected = -1 !== this.selected.indexOf( photo.id );
 			var children = [
 				el( 'img', {
-					class: 'pdi-tile__img',
+					class: 'photofetch-tile__img',
 					src: photo.thumbUrl,
 					alt: photo.alt || photo.title,
 					loading: 'lazy',
 				} ),
-				el( 'span', { class: 'pdi-tile__chip dashicons dashicons-yes', 'aria-hidden': 'true' } ),
+				el( 'span', { class: 'photofetch-tile__chip dashicons dashicons-yes', 'aria-hidden': 'true' } ),
 			];
 
 			if ( this.importedMap[ photo.id ] ) {
-				children.push( el( 'span', { class: 'pdi-tile__badge', text: strings.inLibrary } ) );
+				children.push( el( 'span', { class: 'photofetch-tile__badge', text: strings.inLibrary } ) );
 			}
 
 			var tile = el(
 				'div',
 				{
-					class: 'pdi-tile' + ( selected ? ' is-selected' : '' ),
+					class: 'photofetch-tile' + ( selected ? ' is-selected' : '' ),
 					'data-photo': photo.id,
 					role: 'checkbox',
 					tabindex: '0',
@@ -400,7 +400,7 @@
 
 		syncTiles: function () {
 			var self  = this;
-			var tiles = this.gridEl.querySelectorAll( '.pdi-tile' );
+			var tiles = this.gridEl.querySelectorAll( '.photofetch-tile' );
 
 			Array.prototype.forEach.call( tiles, function ( tile ) {
 				var id       = parseInt( tile.getAttribute( 'data-photo' ), 10 );
@@ -409,8 +409,8 @@
 				tile.classList.toggle( 'is-selected', selected );
 				tile.setAttribute( 'aria-checked', selected ? 'true' : 'false' );
 
-				if ( self.importedMap[ id ] && ! tile.querySelector( '.pdi-tile__badge' ) ) {
-					tile.appendChild( el( 'span', { class: 'pdi-tile__badge', text: strings.inLibrary } ) );
+				if ( self.importedMap[ id ] && ! tile.querySelector( '.photofetch-tile__badge' ) ) {
+					tile.appendChild( el( 'span', { class: 'photofetch-tile__badge', text: strings.inLibrary } ) );
 				}
 			} );
 		},
@@ -422,10 +422,10 @@
 			var photo = this.currentPhoto();
 
 			this.sidebarEl.innerHTML = '';
-			this.sidebarEl.appendChild( el( 'span', { class: 'pdi-tab__sidebarlabel', text: strings.detailsLabel } ) );
+			this.sidebarEl.appendChild( el( 'span', { class: 'photofetch-tab__sidebarlabel', text: strings.detailsLabel } ) );
 
 			if ( ! photo ) {
-				this.sidebarEl.appendChild( el( 'p', { class: 'pdi-tab__sidebarempty', text: strings.detailsEmpty } ) );
+				this.sidebarEl.appendChild( el( 'p', { class: 'photofetch-tab__sidebarempty', text: strings.detailsEmpty } ) );
 				return;
 			}
 
@@ -435,19 +435,19 @@
 				.join( ' · ' );
 
 			this.sidebarEl.appendChild(
-				el( 'img', { class: 'pdi-tab__preview', src: photo.thumbUrl, alt: photo.alt || photo.title } )
+				el( 'img', { class: 'photofetch-tab__preview', src: photo.thumbUrl, alt: photo.alt || photo.title } )
 			);
 
 			if ( photo.author ) {
 				this.sidebarEl.appendChild(
-					el( 'span', { class: 'pdi-tab__meta', text: format( strings.byLine, [ photo.author ] ) } )
+					el( 'span', { class: 'photofetch-tab__meta', text: format( strings.byLine, [ photo.author ] ) } )
 				);
 			}
 			if ( spec ) {
-				this.sidebarEl.appendChild( el( 'span', { class: 'pdi-tab__meta', text: spec } ) );
+				this.sidebarEl.appendChild( el( 'span', { class: 'photofetch-tab__meta', text: spec } ) );
 			}
 
-			this.sidebarEl.appendChild( el( 'hr', { class: 'pdi-tab__divider' } ) );
+			this.sidebarEl.appendChild( el( 'hr', { class: 'photofetch-tab__divider' } ) );
 
 			function field( name, label, control ) {
 				control.value = 'undefined' !== typeof edit[ name ] ? edit[ name ] : control.value;
@@ -455,19 +455,19 @@
 					self.edits[ photo.id ] = self.edits[ photo.id ] || {};
 					self.edits[ photo.id ][ name ] = control.value;
 				} );
-				return el( 'label', { class: 'pdi-tab__field' }, [
-					el( 'span', { class: 'pdi-tab__fieldlabel', text: label } ),
+				return el( 'label', { class: 'photofetch-tab__field' }, [
+					el( 'span', { class: 'photofetch-tab__fieldlabel', text: label } ),
 					control,
 				] );
 			}
 
-			var titleInput = el( 'input', { type: 'text', class: 'pdi-tab__input' } );
+			var titleInput = el( 'input', { type: 'text', class: 'photofetch-tab__input' } );
 			titleInput.value = photo.title || '';
 
-			var altInput = el( 'textarea', { class: 'pdi-tab__textarea', rows: '3', placeholder: strings.fieldAltHint } );
+			var altInput = el( 'textarea', { class: 'photofetch-tab__textarea', rows: '3', placeholder: strings.fieldAltHint } );
 			altInput.value = photo.alt || '';
 
-			var captionInput = el( 'textarea', { class: 'pdi-tab__textarea pdi-tab__textarea--caption', rows: '2' } );
+			var captionInput = el( 'textarea', { class: 'photofetch-tab__textarea photofetch-tab__textarea--caption', rows: '2' } );
 			captionInput.value = photo.credit || '';
 
 			this.sidebarEl.appendChild( field( 'title', strings.fieldTitle, titleInput ) );
@@ -476,7 +476,7 @@
 
 			var sizeSelect = el(
 				'select',
-				{ class: 'pdi-tab__select' },
+				{ class: 'photofetch-tab__select' },
 				( S.sizes || [] ).map( function ( size ) {
 					return el( 'option', { value: size.value, text: size.label } );
 				} )
@@ -487,8 +487,8 @@
 			} );
 
 			this.sidebarEl.appendChild(
-				el( 'label', { class: 'pdi-tab__field' }, [
-					el( 'span', { class: 'pdi-tab__fieldlabel', text: strings.importSize } ),
+				el( 'label', { class: 'photofetch-tab__field' }, [
+					el( 'span', { class: 'photofetch-tab__fieldlabel', text: strings.importSize } ),
 					sizeSelect,
 				] )
 			);
@@ -504,7 +504,7 @@
 			this.footerEl.innerHTML = '';
 
 			var status = el( 'span', {
-				class: 'pdi-tab__count',
+				class: 'photofetch-tab__count',
 				text: count
 					? format(
 							ni18n(
@@ -519,7 +519,7 @@
 
 			var viewFullBtn = el( 'button', {
 				type: 'button',
-				class: 'button pdi-tab__action',
+				class: 'button photofetch-tab__action',
 				text: strings.viewFull,
 			} );
 			viewFullBtn.disabled = ! photo;
@@ -532,12 +532,12 @@
 
 			var importBtn = el( 'button', {
 				type: 'button',
-				class: 'button pdi-tab__action',
+				class: 'button photofetch-tab__action',
 				text: strings.importOnly,
 			} );
 			var insertBtn = el( 'button', {
 				type: 'button',
-				class: 'button button-primary pdi-tab__action',
+				class: 'button button-primary photofetch-tab__action',
 				text: this.primaryLabel(),
 			} );
 
@@ -552,7 +552,7 @@
 			} );
 
 			this.footerEl.appendChild( status );
-			this.footerEl.appendChild( el( 'div', { class: 'pdi-tab__actions' }, [ viewFullBtn, importBtn, insertBtn ] ) );
+			this.footerEl.appendChild( el( 'div', { class: 'photofetch-tab__actions' }, [ viewFullBtn, importBtn, insertBtn ] ) );
 		},
 
 		/**
@@ -586,7 +586,7 @@
 			Array.prototype.forEach.call( this.footerEl.querySelectorAll( 'button' ), function ( button ) {
 				button.disabled = true;
 			} );
-			var status = this.footerEl.querySelector( '.pdi-tab__count' );
+			var status = this.footerEl.querySelector( '.photofetch-tab__count' );
 			if ( status ) {
 				status.textContent = message;
 			}
@@ -625,7 +625,7 @@
 
 			var closeBtn = el( 'button', {
 				type: 'button',
-				class: 'pdi-tab-lightbox__close',
+				class: 'photofetch-tab-lightbox__close',
 				'aria-label': strings.close,
 				text: '×',
 			} );
@@ -633,10 +633,10 @@
 				self.closeLightbox();
 			} );
 
-			var overlay = el( 'div', { class: 'pdi-tab-lightbox' }, [
-				el( 'div', { class: 'pdi-tab-lightbox__frame' }, [
+			var overlay = el( 'div', { class: 'photofetch-tab-lightbox' }, [
+				el( 'div', { class: 'photofetch-tab-lightbox__frame' }, [
 					closeBtn,
-					el( 'img', { class: 'pdi-tab-lightbox__image', src: url, alt: photo.alt || photo.title } ),
+					el( 'img', { class: 'photofetch-tab-lightbox__image', src: url, alt: photo.alt || photo.title } ),
 				] ),
 			] );
 
@@ -712,7 +712,7 @@
 
 				self.setFooterBusy( format( strings.importingProgress, [ index + 1, photos.length ] ) );
 
-				ajax( 'pdi_import', {
+				ajax( 'photofetch_import', {
 					photo_id: photo.id,
 					size: self.size,
 					title: 'undefined' !== typeof edit.title ? edit.title : photo.title,
@@ -856,7 +856,7 @@
 			this.on(
 				'content:render:' + TAB_ID,
 				function () {
-					this.$el.addClass( 'pdi-tab-active' );
+					this.$el.addClass( 'photofetch-tab-active' );
 					this.content.set( new ContentView( { controller: this } ) );
 				},
 				this
@@ -866,7 +866,7 @@
 				this.on(
 					'content:render:' + mode,
 					function () {
-						this.$el.removeClass( 'pdi-tab-active' );
+						this.$el.removeClass( 'photofetch-tab-active' );
 					},
 					this
 				);
@@ -890,7 +890,7 @@
 		// If wp.media's internals ever change shape, fail quietly rather
 		// than breaking the native media modal for everything else.
 		if ( window.console && window.console.warn ) {
-			window.console.warn( 'Photo Directory Importer: could not add media modal tab.', e );
+			window.console.warn( 'PhotoFetch: could not add media modal tab.', e );
 		}
 	}
 } )( window.wp );

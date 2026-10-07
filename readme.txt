@@ -1,10 +1,10 @@
-=== Photo Directory Importer ===
+=== PhotoFetch ===
 Contributors: ekamran, veeeharris, mattgaldino, telizarose, topher1kenobe, gusteci, michelleames
 Tags: media, photos, importer, photo-directory
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.3.17
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,7 +32,7 @@ Entry points:
 
 == Installation ==
 
-1. Upload the plugin files to the `/wp-content/plugins/photo-directory-importer` directory, or install the plugin through the **Plugins > Add New** screen in wp-admin directly.
+1. Upload the plugin files to the `/wp-content/plugins/photofetch` directory, or install the plugin through the **Plugins > Add New** screen in wp-admin directly.
 2. Activate the plugin through the **Plugins** screen in WordPress.
 3. That's it — no configuration is needed and no API key or account is required. Look under **Media > Photo Directory**, use the "Photo Directory" button next to Add Media in the classic editor, or use the "Photo Directory" tab inside the native media picker (Set Featured Image, Add Media, an Image block's Media Library button, etc.).
 
@@ -64,12 +64,12 @@ Yes, if your server's image editor supports it. Go to **Settings > Photo Directo
 
 = Where does the plugin store which photos I've already imported? =
 
-Each imported attachment gets a `_pdi_source_id` meta value matching its ID on the Photo Directory. Importing the same photo again returns the existing attachment instead of downloading a duplicate.
+Each imported attachment gets a `_photofetch_source_id` meta value matching its ID on the Photo Directory. Importing the same photo again returns the existing attachment instead of downloading a duplicate.
 
 == Notes for developers ==
 
 * This is an unofficial integration with a public but not formally
-  documented API. `includes/class-pdi-api.php::normalize_item()` is where
+  documented API. `includes/class-photofetch-api.php::normalize_item()` is where
   the raw JSON from the Photo Directory gets mapped into predictable
   `sizes`/`alt`/`author` fields — it tries several plausible shapes
   (`media_details.sizes`, an embedded featured-media object, a bare
@@ -77,10 +77,10 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
   this is the one function that should need updating.
 * Title and alt text are sourced independently: alt text prefers a real
   alt-text field if the API exposes one, otherwise falls back to the same
-  text used for the Description field (see `PDI_API::normalize_item()` for
+  text used for the Description field (see `PhotoFetch_API::normalize_item()` for
   the exact priority order). It's never derived from the title. For title,
   known upstream placeholder strings (currently "Photo Detail", "Untitled",
-  "Untitled Photo" — see `pdi_generic_title_placeholders` filter) are
+  "Untitled Photo" — see `photofetch_generic_title_placeholders` filter) are
   treated as no title at all, and a fallback title is derived from the
   photo's slug instead (e.g. `red-fox-in-snow` → "Red fox in snow"). If
   the slug itself isn't usable, the title falls back to "Untitled photo".
@@ -94,11 +94,11 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
   (see above), which isn't meaningful to show while browsing. The title is
   still set on the imported attachment; it's just not shown in the grid.
 * Imports are deduplicated: each imported attachment gets a
-  `_pdi_source_id` meta value, and re-importing the same photo returns the
+  `_photofetch_source_id` meta value, and re-importing the same photo returns the
   existing attachment instead of downloading it again.
 * Image format conversion (Settings > Photo Directory,
-  `PDI_Settings::get_format()`) happens in
-  `PDI_Importer::maybe_convert_image()`, right after download and before
+  `PhotoFetch_Settings::get_format()`) happens in
+  `PhotoFetch_Importer::maybe_convert_image()`, right after download and before
   sideloading. It re-checks `wp_image_editor_supports()` at import time
   rather than trusting the stored setting outright, and falls back to the
   original file on any failure.
@@ -106,10 +106,17 @@ Each imported attachment gets a `_pdi_source_id` meta value matching its ID on t
   the upstream API on repeat searches.
 * All photos on the Photo Directory are released CC0 (no attribution
   required), but the plugin stores the original photo URL and author name
-  (when available) as `_pdi_source_url` / `_pdi_source_author` attachment
+  (when available) as `_photofetch_source_url` / `_photofetch_source_author` attachment
   meta for your own reference, in addition to the caption credit above.
 
 == Changelog ==
+
+= 2.0.0 =
+Renamed the plugin from "Photo Directory Importer" to "PhotoFetch." Unlike the 1.3.16 rename, this one is a full internal rebrand, not just the public-facing name:
+* Main plugin file renamed from `photo-directory-importer.php` to `photofetch.php`; every `includes/class-pdi-*.php` file renamed to `includes/class-photofetch-*.php`; the bundled `.pot` file renamed to `languages/photofetch.pot`.
+* The `Text Domain` (and every translation call's domain argument) changed from `photo-directory-importer` to `photofetch`, matching the new slug — same requirement as the 1.3.14 and 1.3.16 fixes.
+* Unlike 1.3.16, this time the internal-only identifiers were deliberately included: all `PDI_*` class names (`PDI_API`, `PDI_Importer`, `PDI_Plugin`, `PDI_Settings`) are now `PhotoFetch_API`, `PhotoFetch_Importer`, `PhotoFetch_Plugin`, `PhotoFetch_Settings`; the `PDI_*` constants are now `PHOTOFETCH_*`; every `pdi_`-prefixed hook, filter, nonce, AJAX action, option, and meta key (including the `_pdi_source_id`/`_pdi_source_url`/`_pdi_source_author`/`_pdi_imported` attachment meta) is now `photofetch_`-prefixed; and every `pdi-*` CSS class, script/style handle, and HTML id is now `photofetch-*`.
+* This is a breaking change for existing installs: deactivate and remove the old plugin, then install this one fresh. Site functionality and every imported photo's existing attachment meta are otherwise unaffected — only the identifiers above changed, not what they do.
 
 = 1.3.17 =
 * Fixed the phpcs findings from a fresh run against the renamed plugin:
@@ -386,6 +393,9 @@ exploited vulnerability.
 * Initial release.
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+The plugin has been renamed to PhotoFetch (from "Photo Directory Importer"). This is a breaking change: the main file, every `includes/class-pdi-*.php` file, the text domain, and all internal PDI_*/pdi_*/pdi-* identifiers changed. Deactivate and remove the old plugin, then install this one fresh.
 
 = 1.3.9 =
 Corrects the trusted image-host allowlist added in 1.3.7, which could block all imports on some installs via a wrong default in 1.3.7 (and a partial fix in 1.3.8). Recommended if you're running 1.3.7 or 1.3.8.

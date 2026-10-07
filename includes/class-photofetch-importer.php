@@ -2,7 +2,7 @@
 /**
  * Handles downloading and sideloading photos into the Media Library.
  *
- * @package Photo_Directory_Importer
+ * @package PhotoFetch
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -14,11 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * a real attachment (so it behaves exactly like any uploaded image —
  * usable as a featured image, in blocks, etc.).
  */
-class PDI_Importer {
+class PhotoFetch_Importer {
 
-	const META_SOURCE_ID     = '_pdi_source_id';
-	const META_SOURCE_URL    = '_pdi_source_url';
-	const META_SOURCE_AUTHOR = '_pdi_source_author';
+	const META_SOURCE_ID     = '_photofetch_source_id';
+	const META_SOURCE_URL    = '_photofetch_source_url';
+	const META_SOURCE_AUTHOR = '_photofetch_source_author';
 
 	/**
 	 * Sizes the UI is allowed to ask for, mapped to the upstream size key
@@ -35,16 +35,16 @@ class PDI_Importer {
 	}
 
 	/**
-	 * AJAX handler for `action=pdi_import`. Expects `photo_id`, plus
+	 * AJAX handler for `action=photofetch_import`. Expects `photo_id`, plus
 	 * optional `size`, `add_credit` and per-photo `title`, `alt` and
 	 * `caption` overrides; returns the resulting attachment.
 	 */
 	public static function ajax_import() {
-		check_ajax_referer( 'pdi_nonce', 'nonce' );
+		check_ajax_referer( 'photofetch_nonce', 'nonce' );
 
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error(
-				array( 'message' => __( 'You do not have permission to do this.', 'photo-directory-importer' ) ),
+				array( 'message' => __( 'You do not have permission to do this.', 'photofetch' ) ),
 				403
 			);
 			return;
@@ -66,7 +66,7 @@ class PDI_Importer {
 		);
 
 		if ( ! $photo_id ) {
-			wp_send_json_error( array( 'message' => __( 'Missing photo ID.', 'photo-directory-importer' ) ) );
+			wp_send_json_error( array( 'message' => __( 'Missing photo ID.', 'photofetch' ) ) );
 			return;
 		}
 
@@ -78,7 +78,7 @@ class PDI_Importer {
 			return;
 		}
 
-		$photo = PDI_API::get_photo( $photo_id );
+		$photo = PhotoFetch_API::get_photo( $photo_id );
 		if ( is_wp_error( $photo ) ) {
 			wp_send_json_error( array( 'message' => $photo->get_error_message() ) );
 			return;
@@ -181,7 +181,7 @@ class PDI_Importer {
 	 * Downloads the chosen size of a normalized photo and sideloads it into
 	 * the Media Library.
 	 *
-	 * @param array  $photo Normalized photo data from PDI_API::normalize_item().
+	 * @param array  $photo Normalized photo data from PhotoFetch_API::normalize_item().
 	 * @param string $size  Preferred size key; falls back to 'full', then the largest available.
 	 * @param array  $args  {
 	 *     Optional. Import options supplied by the editor.
@@ -214,8 +214,8 @@ class PDI_Importer {
 
 		if ( empty( $photo['sizes'] ) ) {
 			return new WP_Error(
-				'pdi_no_image',
-				__( 'No downloadable image was found for this photo.', 'photo-directory-importer' )
+				'photofetch_no_image',
+				__( 'No downloadable image was found for this photo.', 'photofetch' )
 			);
 		}
 
@@ -230,8 +230,8 @@ class PDI_Importer {
 
 		if ( empty( $source_url ) ) {
 			return new WP_Error(
-				'pdi_no_image',
-				__( 'No downloadable image was found for this photo.', 'photo-directory-importer' )
+				'photofetch_no_image',
+				__( 'No downloadable image was found for this photo.', 'photofetch' )
 			);
 		}
 
@@ -245,13 +245,13 @@ class PDI_Importer {
 		// download and store an attacker's file from an arbitrary server.
 		if ( ! self::is_allowed_image_host( $source_url ) ) {
 			return new WP_Error(
-				'pdi_untrusted_host',
+				'photofetch_untrusted_host',
 				sprintf(
 					/* translators: %s: the image URL's actual, rejected hostname */
 					__(
 						// phpcs:ignore Generic.Files.LineLength.TooLong -- deliberately detailed message; splitting the string via concatenation would complicate translation for little benefit.
-						'This photo could not be imported because its source URL (host: %s) is not on a trusted host. Add it via the pdi_allowed_image_hosts filter if you recognize it as legitimate Photo Directory infrastructure.',
-						'photo-directory-importer'
+						'This photo could not be imported because its source URL (host: %s) is not on a trusted host. Add it via the photofetch_allowed_image_hosts filter if you recognize it as legitimate Photo Directory infrastructure.',
+						'photofetch'
 					),
 					wp_parse_url( $source_url, PHP_URL_HOST )
 				)
@@ -307,7 +307,7 @@ class PDI_Importer {
 		if ( ! empty( $photo['author'] ) ) {
 			update_post_meta( $attachment_id, self::META_SOURCE_AUTHOR, $photo['author'] );
 		}
-		update_post_meta( $attachment_id, '_pdi_imported', 1 );
+		update_post_meta( $attachment_id, '_photofetch_imported', 1 );
 
 		return $attachment_id;
 	}
@@ -332,7 +332,7 @@ class PDI_Importer {
 
 		$credit = sprintf(
 			/* translators: %s: photographer's display name */
-			__( 'Photo by %s, via the WordPress Photo Directory.', 'photo-directory-importer' ),
+			__( 'Photo by %s, via the WordPress Photo Directory.', 'photofetch' ),
 			$photo['author']
 		);
 
@@ -342,7 +342,7 @@ class PDI_Importer {
 		 * @param string $credit Credit line.
 		 * @param array  $photo  Normalized photo data.
 		 */
-		return apply_filters( 'pdi_credit_line', $credit, $photo );
+		return apply_filters( 'photofetch_credit_line', $credit, $photo );
 	}
 
 	/**
@@ -386,7 +386,7 @@ class PDI_Importer {
 		 *
 		 * @param string[] $hosts Lowercased allowed hostnames.
 		 */
-		return apply_filters( 'pdi_allowed_image_hosts', array( 'wordpress.org', 'wp.com', 'w.org' ) );
+		return apply_filters( 'photofetch_allowed_image_hosts', array( 'wordpress.org', 'wp.com', 'w.org' ) );
 	}
 
 	/**
@@ -450,7 +450,7 @@ class PDI_Importer {
 			'filename' => $filename,
 		);
 
-		$format = PDI_Settings::get_format();
+		$format = PhotoFetch_Settings::get_format();
 		if ( 'original' === $format ) {
 			return $original;
 		}
@@ -468,7 +468,7 @@ class PDI_Importer {
 		// Quality only ever applies here — this whole branch is unreachable
 		// when the format is 'original', so nothing re-encodes (and no
 		// quality setting applies to) whatever format the photo already was.
-		$editor->set_quality( PDI_Settings::get_quality() );
+		$editor->set_quality( PhotoFetch_Settings::get_quality() );
 
 		$new_path = wp_tempnam( $filename );
 		$saved    = $editor->save( $new_path, $mime );

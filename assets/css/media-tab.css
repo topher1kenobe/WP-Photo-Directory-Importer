@@ -7,15 +7,15 @@
 
 /* Core's toolbar acts on attachments. Until an import has run there are
    none, so the tab carries its own footer instead. */
-.pdi-tab-active .media-frame-toolbar {
+.photofetch-tab-active .media-frame-toolbar {
 	display: none;
 }
 
-.pdi-tab-active .media-frame-content {
+.photofetch-tab-active .media-frame-content {
 	bottom: 0;
 }
 
-.pdi-tab {
+.photofetch-tab {
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -26,7 +26,7 @@
 	background: #fff;
 }
 
-.pdi-tab__main {
+.photofetch-tab__main {
 	display: flex;
 	flex: 1;
 	min-height: 0;
@@ -34,7 +34,7 @@
 
 /* ------------------------------------------------------------- browse pane */
 
-.pdi-tab__browse {
+.photofetch-tab__browse {
 	display: flex;
 	flex: 1;
 	min-width: 0;
@@ -43,20 +43,20 @@
 	padding: 14px 16px;
 }
 
-.pdi-tab__controls {
+.photofetch-tab__controls {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	align-items: center;
 }
 
-.pdi-tab__searchwrap {
+.photofetch-tab__searchwrap {
 	position: relative;
 	flex: 1;
 	min-width: 180px;
 }
 
-.pdi-tab__searchicon {
+.photofetch-tab__searchicon {
 	position: absolute;
 	top: 50%;
 	left: 8px;
@@ -70,7 +70,7 @@
 /* Deliberately over-qualified: core's `.media-frame input[type="search"]`
    and friends outrank a single class, so the form controls in this tab need
    three classes to keep their own metrics. */
-.pdi-tab .pdi-tab__controls .pdi-tab__search {
+.photofetch-tab .photofetch-tab__controls .photofetch-tab__search {
 	width: 100%;
 	margin: 0;
 	height: 32px;
@@ -83,11 +83,11 @@
 	background: #fff;
 }
 
-.pdi-tab__search::-webkit-search-cancel-button {
+.photofetch-tab__search::-webkit-search-cancel-button {
 	cursor: pointer;
 }
 
-.pdi-tab .pdi-tab__main .pdi-tab__select {
+.photofetch-tab .photofetch-tab__main .photofetch-tab__select {
 	height: 32px;
 	max-width: 190px;
 	padding: 0 24px 0 8px;
@@ -99,37 +99,37 @@
 	background-color: #fff;
 }
 
-.pdi-tab__scroll {
+.photofetch-tab__scroll {
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
 }
 
-.pdi-tab__status {
+.photofetch-tab__status {
 	padding: 12px 0;
 	font-size: 13px;
 	color: #646970;
 }
 
-.pdi-tab__grid {
+.photofetch-tab__grid {
 	display: grid;
 	grid-template-columns: repeat( 5, 1fr );
 	gap: 10px;
 }
 
-.pdi-tab__more {
+.photofetch-tab__more {
 	display: flex;
 	justify-content: center;
 	padding: 16px 0 4px;
 }
 
-.pdi-tab__more:empty {
+.photofetch-tab__more:empty {
 	display: none;
 }
 
 /* -------------------------------------------------------------------- tile */
 
-.pdi-tile {
+.photofetch-tile {
 	position: relative;
 	padding-bottom: 100%;
 	border: 1px solid #dcdcde;
@@ -137,7 +137,7 @@
 	cursor: pointer;
 }
 
-.pdi-tile__img {
+.photofetch-tile__img {
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -149,17 +149,17 @@
 	display: block;
 }
 
-.pdi-tile:focus {
+.photofetch-tile:focus {
 	outline: 2px solid #2271b1;
 	outline-offset: -2px;
 }
 
-.pdi-tile.is-selected {
+.photofetch-tile.is-selected {
 	border-color: #2271b1;
 	box-shadow: 0 0 0 2px #2271b1;
 }
 
-.pdi-tile__chip {
+.photofetch-tile__chip {
 	position: absolute;
 	top: 4px;
 	right: 4px;
@@ -174,11 +174,11 @@
 	text-align: center;
 }
 
-.pdi-tile.is-selected .pdi-tile__chip {
+.photofetch-tile.is-selected .photofetch-tile__chip {
 	display: block;
 }
 
-.pdi-tile__badge {
+.photofetch-tile__badge {
 	position: absolute;
 	bottom: 4px;
 	left: 4px;
@@ -192,7 +192,7 @@
 
 /* ----------------------------------------------------------------- sidebar */
 
-.pdi-tab__sidebar {
+.photofetch-tab__sidebar {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
@@ -204,7 +204,7 @@
 	overflow-y: auto;
 }
 
-.pdi-tab__sidebarlabel {
+.photofetch-tab__sidebarlabel {
 	font-size: 12px;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -212,13 +212,13 @@
 	color: #646970;
 }
 
-.pdi-tab__sidebarempty {
+.photofetch-tab__sidebarempty {
 	margin: 0;
 	font-size: 13px;
 	color: #646970;
 }
 
-.pdi-tab__preview {
+.photofetch-tab__preview {
 	display: block;
 	width: 100%;
 	height: 150px;
@@ -227,31 +227,31 @@
 	background: #f0f0f1;
 }
 
-.pdi-tab__meta {
+.photofetch-tab__meta {
 	font-size: 12px;
 	line-height: 1.6;
 	color: #646970;
 }
 
-.pdi-tab__divider {
+.photofetch-tab__divider {
 	height: 0;
 	margin: 0;
 	border: 0;
 	border-top: 1px solid #dcdcde;
 }
 
-.pdi-tab__field {
+.photofetch-tab__field {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
 }
 
-.pdi-tab__fieldlabel {
+.photofetch-tab__fieldlabel {
 	font-size: 12px;
 	color: #646970;
 }
 
-.pdi-tab .pdi-tab__sidebar .pdi-tab__input {
+.photofetch-tab .photofetch-tab__sidebar .photofetch-tab__input {
 	width: 100%;
 	height: 30px;
 	padding: 0 8px;
@@ -261,7 +261,7 @@
 	color: #2c3338;
 }
 
-.pdi-tab .pdi-tab__sidebar .pdi-tab__textarea {
+.photofetch-tab .photofetch-tab__sidebar .photofetch-tab__textarea {
 	width: 100%;
 	padding: 6px 8px;
 	border: 1px solid #8c8f94;
@@ -272,18 +272,18 @@
 	resize: vertical;
 }
 
-.pdi-tab .pdi-tab__sidebar .pdi-tab__textarea--caption {
+.photofetch-tab .photofetch-tab__sidebar .photofetch-tab__textarea--caption {
 	color: #646970;
 }
 
-.pdi-tab .pdi-tab__sidebar .pdi-tab__select {
+.photofetch-tab .photofetch-tab__sidebar .photofetch-tab__select {
 	max-width: none;
 	width: 100%;
 }
 
 /* ------------------------------------------------------------------ footer */
 
-.pdi-tab__footer {
+.photofetch-tab__footer {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -294,17 +294,17 @@
 	background: #fff;
 }
 
-.pdi-tab__count {
+.photofetch-tab__count {
 	font-size: 13px;
 	color: #646970;
 }
 
-.pdi-tab__actions {
+.photofetch-tab__actions {
 	display: flex;
 	gap: 8px;
 }
 
-.pdi-tab__action.button {
+.photofetch-tab__action.button {
 	height: 32px;
 	line-height: 30px;
 	padding: 0 12px;
@@ -319,7 +319,7 @@
  * view's ancestors. wp.media's modal backdrop sits around z-index: 160000,
  * so this needs to clear that with room to spare.
  */
-.pdi-tab-lightbox {
+.photofetch-tab-lightbox {
 	position: fixed;
 	inset: 0;
 	z-index: 999999;
@@ -331,13 +331,13 @@
 	background: rgba( 0, 0, 0, 0.85 );
 }
 
-.pdi-tab-lightbox__frame {
+.photofetch-tab-lightbox__frame {
 	position: relative;
 	max-width: 100%;
 	max-height: 100%;
 }
 
-.pdi-tab-lightbox__image {
+.photofetch-tab-lightbox__image {
 	display: block;
 	max-width: 100%;
 	max-height: calc( 100vh - 100px );
@@ -345,7 +345,7 @@
 	box-shadow: 0 8px 32px rgba( 0, 0, 0, 0.4 );
 }
 
-.pdi-tab-lightbox__close {
+.photofetch-tab-lightbox__close {
 	position: absolute;
 	top: -40px;
 	right: 0;
@@ -358,51 +358,51 @@
 	border: 0;
 }
 
-.pdi-tab-lightbox__close:hover {
+.photofetch-tab-lightbox__close:hover {
 	opacity: 0.8;
 }
 
 /* -------------------------------------------------------------- responsive */
 
 @media screen and ( max-width: 1200px ) {
-	.pdi-tab__grid {
+	.photofetch-tab__grid {
 		grid-template-columns: repeat( 4, 1fr );
 	}
 }
 
 @media screen and ( max-width: 960px ) {
-	.pdi-tab__grid {
+	.photofetch-tab__grid {
 		grid-template-columns: repeat( 3, 1fr );
 	}
 }
 
 /* Below 782px core stacks the modal sidebar under the grid. */
 @media screen and ( max-width: 782px ) {
-	.pdi-tab__main {
+	.photofetch-tab__main {
 		flex-direction: column;
 		overflow-y: auto;
 	}
 
-	.pdi-tab__browse {
+	.photofetch-tab__browse {
 		flex: none;
 	}
 
-	.pdi-tab__scroll {
+	.photofetch-tab__scroll {
 		overflow: visible;
 	}
 
-	.pdi-tab__sidebar {
+	.photofetch-tab__sidebar {
 		width: auto;
 		border-left: 0;
 		border-top: 1px solid #dcdcde;
 		overflow: visible;
 	}
 
-	.pdi-tab__grid {
+	.photofetch-tab__grid {
 		grid-template-columns: repeat( 2, 1fr );
 	}
 
-	.pdi-tab__footer {
+	.photofetch-tab__footer {
 		flex-wrap: wrap;
 	}
 }
