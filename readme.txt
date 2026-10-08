@@ -395,7 +395,7 @@ exploited vulnerability.
 == Upgrade Notice ==
 
 = 2.0.0 =
-The plugin has been renamed to PhotoFetch (from "Photo Directory Importer"). This is a breaking change: the main file, every `includes/class-pdi-*.php` file, the text domain, and all internal PDI_*/pdi_*/pdi-* identifiers changed. Deactivate and remove the old plugin, then install this one fresh.
+Renamed to PhotoFetch. Breaking change: file names, text domain, and all internal identifiers changed. Deactivate and remove the old plugin, then install this one fresh.
 
 = 1.3.9 =
 Corrects the trusted image-host allowlist added in 1.3.7, which could block all imports on some installs via a wrong default in 1.3.7 (and a partial fix in 1.3.8). Recommended if you're running 1.3.7 or 1.3.8.
